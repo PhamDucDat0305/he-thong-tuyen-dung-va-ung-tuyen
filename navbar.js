@@ -203,6 +203,11 @@
           <div class="navbar-links" id="navLinks">
             ${navLinksHTML}
           </div>
+          <button class="navbar-hamburger" id="navHamburger" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
           ${user ? profileHTML : authHTML}
         </div>
       </nav>`;
@@ -244,6 +249,14 @@
       }, { passive: false });
     }
 
+     /* Hamburger toggle */
+    const hamburger = document.getElementById('navHamburger');
+    const navLinksEl = document.getElementById('navLinks');
+    if (hamburger && navLinksEl) {
+      hamburger.addEventListener('click', () => {
+        navLinksEl.classList.toggle('open');
+      });
+    }
     /* Logout — re-render in place */
     const logoutBtn = document.getElementById('navLogoutBtn');
     if (logoutBtn) {
@@ -279,3 +292,5 @@
     mount();
   }
 })();
+
+

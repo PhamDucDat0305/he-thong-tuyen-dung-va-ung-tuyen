@@ -1,7 +1,3 @@
-/* =============================================
-   NAVBAR — JobViệt
-   Auth states + Hover Profile Dropdown
-   ============================================= */
 
 /* ---------- Base Navbar ---------- */
 .navbar {
@@ -403,4 +399,57 @@
 .dd-logout:hover .dd-item-icon {
   background: #ef4444;
   color: white;
+}
+
+
+
+@media (max-width: 768px) {
+  .navbar-links {
+    display: none;
+    position: absolute;
+    top: 70px;
+    left: 0;
+    right: 0;
+    background: white;
+    flex-direction: column;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+  .navbar-links.open {
+    display: flex;
+  }
+  .navbar-links a {
+    padding: 12px 14px;
+    width: 100%;
+  }
+
+  .nav-username {
+    display: none;
+  }
+
+  /* Hamburger button */
+  .navbar-hamburger {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 6px;
+    border: none;
+    background: none;
+  }
+  .navbar-hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: all 0.3s;
+  }
+}
+
+@media (min-width: 769px) {
+  .navbar-hamburger {
+    display: none;
+  }
 }

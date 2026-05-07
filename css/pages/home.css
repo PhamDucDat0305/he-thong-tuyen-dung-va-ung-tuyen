@@ -102,3 +102,53 @@
   justify-content: center;
   gap: 12px;
 }
+
+
+@media (max-width: 768px) {
+  /* Hero */
+  .hero {
+    padding: 48px 0;
+  }
+  .hero h1 {
+    font-size: 1.8rem;
+  }
+  .hero-content p {
+    font-size: 1rem;
+  }
+
+  /* Search box */
+  .search-box {
+    flex-direction: column;
+  }
+  .search-box button {
+    width: 100%;
+  }
+
+  /* Stats */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-top: 32px;
+  }
+
+  /* CTA */
+  .cta {
+    padding: 32px 20px;
+  }
+  .cta-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  .cta-buttons .btn {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  /* Section header */
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
