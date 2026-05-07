@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/pages/home.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <title>Tìm Việc Làm</title>
+  </head>
+  <body>
+    <div class="page">
+      <!-- Navbar -->
+      <div id="navbar-placeholder"></div>
+
+      <!-- Hero -->
+      <section class="hero">
+        <div class="container hero-content">
+          <h1 class="fade-in">
+            Tìm công việc <span class="highlight">mơ ước</span> của bạn
+          </h1>
+
+          <p class="fade-in delay-1">
+            Hàng ngàn cơ hội việc làm từ các công ty hàng đầu Việt Nam đang chờ
+            bạn. Bắt đầu tìm kiếm ngay!
+          </p>
+
+          <div class="search-box fade-in delay-2">
+            <input
+              type="text"
+              id="heroSearch"
+              placeholder="Tìm theo tên công việc, công ty, vị trí..."
+              oninput="searchFromHero()"
+            />
+            <button class="btn btn-primary" onclick="goToSearch()">
+              <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+            </button>
+          </div>
+
+          <div class="stats fade-in delay-3">
+            <div class="stat-item">
+              <div class="stat-number" id="statJobs">0</div>
+              <div class="stat-label">Việc làm</div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-number" id="statCompanies">0</div>
+              <div class="stat-label">Công ty</div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-number" id="statUsers">0</div>
+              <div class="stat-label">Ứng viên</div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-number" id="statApps">0</div>
+              <div class="stat-label">Lượt ứng tuyển</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Content -->
+      <section class="section">
+        <div class="container">
+
+          <!-- Featured Jobs -->
+          <div class="section-header">
+            <div>
+              <h2><i class="fa-solid fa-briefcase"></i> Việc làm nổi bật</h2>
+              <p class="section-desc">
+                Các cơ hội mới nhất từ nhà tuyển dụng uy tín
+              </p>
+            </div>
+            <a href="#" class="btn btn-outline">Xem tất cả →</a>
+          </div>
+
+          <div class="grid grid-2" id="featuredJobs"></div>
+
+          <!-- Categories -->
+          <div class="categories text-center">
+            <h2><i class="fa-solid fa-folder-open"></i> Danh mục phổ biến</h2>
+            <p class="section-desc mb">
+              Khám phá việc làm theo lĩnh vực
+            </p>
+
+            <div class="grid grid-4" id="categories"></div>
+          </div>
+
+          <!-- CTA -->
+          <div class="cta fade-in">
+            <h2>Sẵn sàng bắt đầu sự nghiệp?</h2>
+            <p>
+              Đăng ký ngay để truy cập hàng ngàn cơ hội việc làm hoặc tìm ứng
+              viên phù hợp
+            </p>
+
+            <div class="cta-buttons">
+              <a href="auth.html" class="btn btn-large btn-light">
+                <i class="fa-solid fa-user-graduate"></i> Tìm việc ngay
+              </a>
+
+              <a href="auth.html" class="btn btn-large btn-outline-light">
+                <i class="fa-solid fa-building"></i> Đăng tuyển dụng
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="footer" id="footer"></footer>
+    </div>
+    <script src="navbar.js"></script>
+  </body>
+</html>

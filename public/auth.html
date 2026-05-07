@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - JobViệt</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/pages/auth.css">
+</head>
+<body>
+    <div class="auth-page">
+        <div class="container" id="container">
+            <!-- Form Đăng ký -->
+            <div class="form-container sign-up-container">
+                <form id="regForm" onsubmit="handleRegister(event)">
+                    <h2>Tạo tài khoản</h2>
+                    <p class="auth-subtitle mb-4">Tham gia JobViệt để tìm việc làm</p>
+                    
+                    <div class="role-selector mb-3 w-100">
+                        <div class="role-option active" data-role="candidate" onclick="selectRole(this)">
+                            <div class="role-icon"><i class="fa-solid fa-user-graduate"></i></div>
+                            <div class="role-name">Ứng viên</div>
+                        </div>
+                        <div class="role-option" data-role="employer" onclick="selectRole(this)">
+                            <div class="role-icon"><i class="fa-solid fa-building"></i></div>
+                            <div class="role-name">Nhà tuyển dụng</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="role" value="candidate">
+                    
+                    <div class="form-group w-100 text-left">
+                        <input type="text" class="form-input" id="fullName" placeholder="Họ và tên" required>
+                    </div>
+                    <div class="form-row w-100 text-left">
+                        <div class="form-group">
+                            <input type="text" class="form-input" id="username_reg" placeholder="Tên đăng nhập" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" class="form-input" id="email" placeholder="Email" required>
+                        </div>
+                    </div>
+                    <div class="form-group w-100 text-left">
+                        <input type="password" class="form-input" id="password_reg" placeholder="Mật khẩu" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block btn-lg mt-2">Đăng ký</button>
+                </form>
+            </div>
+            
+            <!-- Form Đăng nhập -->
+            <div class="form-container sign-in-container">
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="auth-logo mb-3">
+                        <div class="logo-icon"><i class="fa-solid fa-briefcase"></i></div>
+                        <h2>Đăng nhập</h2>
+                        <p class="auth-subtitle">Chào mừng bạn quay lại JobViệt</p>
+                    </div>
+                    <div class="form-group w-100 text-left">
+                        <label class="form-label">Tên đăng nhập</label>
+                        <input type="text" class="form-input" id="username" placeholder="Nhập tên đăng nhập" required autofocus>
+                    </div>
+                    <div class="form-group w-100 text-left">
+                        <label class="form-label">Mật khẩu</label>
+                        <input type="password" class="form-input" id="password" placeholder="Nhập mật khẩu" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block btn-lg mt-3">Đăng nhập</button>
+                </form>
+            </div>
+            
+            <!-- Overlay chuyển đổi -->
+            <div class="overlay-container">
+                <div class="overlay">
+                    <div class="overlay-panel overlay-left">
+                        <h2>Chào mừng quay lại!</h2>
+                        <p style="margin-top: 15px; margin-bottom: 25px; line-height: 1.5;">Để giữ kết nối với chúng tôi, vui lòng đăng nhập bằng tài khoản cá nhân của bạn</p>
+                        <button class="ghost-btn" id="login">Đăng nhập</button>
+                    </div>
+                    <div class="overlay-panel overlay-right">
+                        <h2>Chào bạn mới!</h2>
+                        <p style="margin-top: 15px; margin-bottom: 25px; line-height: 1.5;">Nhập thông tin cá nhân của bạn và bắt đầu hành trình tìm việc ngay hôm nay</p>
+                        <button class="ghost-btn" id="register">Đăng ký</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast thông báo -->
+    <div id="toast" style="
+        position: fixed; top: 24px; right: 24px; z-index: 9999;
+        padding: 14px 22px; border-radius: 10px; font-size: 15px;
+        font-family: 'Inter', sans-serif; font-weight: 500;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        display: none; align-items: center; gap: 10px;
+        min-width: 260px; max-width: 380px;
+        transition: opacity 0.35s ease;
+    ">
+        <i id="toast-icon" class="fa-solid"></i>
+        <span id="toast-msg"></span>
+    </div>
+
+    <script>
+        /* ===== Chuyển tab ===== */
+        const container = document.getElementById('container');
+        const registerBtn = document.getElementById('register');
+        const loginBtn    = document.getElementById('login');
+
+        registerBtn.addEventListener('click', () => {
+            container.classList.add("active");
+            document.title = "Đăng ký - JobViệt";
+        });
+        loginBtn.addEventListener('click', () => {
+            container.classList.remove("active");
+            document.title = "Đăng nhập - JobViệt";
+        });
+
+        /* ===== Tự chuyển tab theo URL param ===== */
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('mode') === 'register') {
+            container.classList.add('active');
+            document.title = "Đăng ký - JobViệt";
+        }
+
+        /* ===== Chọn vai trò ===== */
+        function selectRole(element) {
+            document.querySelectorAll('.role-option').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            document.getElementById('role').value = element.getAttribute('data-role');
+        }
+
+        /* ===== Toast ===== */
+        let toastTimer;
+        function showToast(message, type = 'success') {
+            const toast   = document.getElementById('toast');
+            const msgEl   = document.getElementById('toast-msg');
+            const iconEl  = document.getElementById('toast-icon');
+
+            msgEl.textContent = message;
+            clearTimeout(toastTimer);
+
+            if (type === 'success') {
+                toast.style.background = '#22c55e';
+                toast.style.color      = '#fff';
+                iconEl.className       = 'fa-solid fa-circle-check';
+            } else if (type === 'error') {
+                toast.style.background = '#ef4444';
+                toast.style.color      = '#fff';
+                iconEl.className       = 'fa-solid fa-circle-xmark';
+            } else {
+                toast.style.background = '#f59e0b';
+                toast.style.color      = '#fff';
+                iconEl.className       = 'fa-solid fa-triangle-exclamation';
+            }
+
+            toast.style.display = 'flex';
+            toast.style.opacity = '1';
+
+            toastTimer = setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => { toast.style.display = 'none'; }, 350);
+            }, 3000);
+        }
+
+        /* ===== Helpers localStorage ===== */
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('jobviet_users') || '[]');
+        }
+        function saveUsers(users) {
+            localStorage.setItem('jobviet_users', JSON.stringify(users));
+        }
+
+        /* ===== Đăng ký ===== */
+        function handleRegister(event) {
+            event.preventDefault();
+
+            const fullName = document.getElementById('fullName').value.trim();
+            const username = document.getElementById('username_reg').value.trim();
+            const email    = document.getElementById('email').value.trim();
+            const password = document.getElementById('password_reg').value;
+            const role     = document.getElementById('role').value;
+
+            if (!fullName || !username || !email || !password) {
+                showToast('Vui lòng điền đầy đủ thông tin!', 'warning');
+                return;
+            }
+
+            if (password.length < 6) {
+                showToast('Mật khẩu phải có ít nhất 6 ký tự!', 'warning');
+                return;
+            }
+
+            const users = getUsers();
+
+            // Kiểm tra tên đăng nhập đã tồn tại chưa
+            const duplicate = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+            if (duplicate) {
+                showToast(`Tên đăng nhập "${username}" đã được sử dụng. Vui lòng chọn tên khác!`, 'error');
+                document.getElementById('username_reg').focus();
+                return;
+            }
+
+            // Kiểm tra email đã tồn tại chưa
+            const dupEmail = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+            if (dupEmail) {
+                showToast('Email này đã được đăng ký. Vui lòng dùng email khác!', 'error');
+                document.getElementById('email').focus();
+                return;
+            }
+
+            // Lưu tài khoản mới
+            users.push({ fullName, username, email, password, role, createdAt: new Date().toISOString() });
+            saveUsers(users);
+
+            // Lưu phiên đăng nhập và chuyển thẳng vào trang chủ
+            sessionStorage.setItem('loggedInUser', JSON.stringify({
+                username, fullName, role, email
+            }));
+            window.location.href = 'index.html';
+        }
+
+        /* ===== Đăng nhập ===== */
+        function handleLogin(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showToast('Vui lòng nhập tên đăng nhập và mật khẩu!', 'warning');
+                return;
+            }
+
+            const users = getUsers();
+            const user  = users.find(
+                u => u.username.toLowerCase() === username.toLowerCase() && u.password === password
+            );
+
+            if (!user) {
+                showToast('Tên đăng nhập hoặc mật khẩu không đúng, vui lòng thử lại!', 'error');
+                document.getElementById('password').value = '';
+                return;
+            }
+
+            // Lưu phiên đăng nhập và chuyển về trang chủ
+            sessionStorage.setItem('loggedInUser', JSON.stringify({
+                username: user.username,
+                fullName: user.fullName,
+                role:     user.role,
+                email:    user.email
+            }));
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

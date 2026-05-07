@@ -1,0 +1,406 @@
+/* =============================================
+   NAVBAR — JobViệt
+   Auth states + Hover Profile Dropdown
+   ============================================= */
+
+/* ---------- Base Navbar ---------- */
+.navbar {
+  height: 70px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: box-shadow 0.3s ease;
+}
+.navbar.scrolled {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.navbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+/* ---------- Logo ---------- */
+.navbar-logo {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--primary);
+  text-decoration: none;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.navbar-logo i {
+  font-size: 1.2rem;
+}
+
+/* ---------- Nav Links ---------- */
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+.navbar-links a {
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-light);
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+.navbar-links a:hover,
+.navbar-links a.active {
+  background: var(--border-light);
+  color: var(--primary);
+}
+
+/* ---------- Right side ---------- */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ---------- Auth Buttons (logged out) ---------- */
+.nav-auth-btn {
+  padding: 8px 18px;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.nav-btn-login {
+  background: transparent;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+}
+.nav-btn-login:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+}
+.nav-btn-register {
+  background: linear-gradient(135deg, var(--primary) 0%, #38bdf8 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3);
+}
+.nav-btn-register:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.45);
+}
+
+/* ---------- User Profile Wrapper (logged in) ---------- */
+.nav-profile-wrapper {
+  position: relative;
+  display: none; /* shown via JS when logged in */
+  padding-bottom: 8px;  /* extend hover area into the gap */
+  margin-bottom: -8px;
+}
+.nav-profile-wrapper.is-logged-in {
+  display: flex;
+}
+
+/* ---------- Profile Trigger (avatar + name) ---------- */
+.nav-profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 12px 5px 5px;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  user-select: none;
+  border: 1.5px solid transparent;
+}
+.nav-profile-trigger:hover,
+.nav-profile-wrapper:hover .nav-profile-trigger {
+  background: #f0f9ff;
+  border-color: var(--border);
+}
+
+.nav-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, #38bdf8 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.35);
+}
+.nav-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nav-username {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-chevron {
+  font-size: 0.65rem;
+  color: var(--text-light);
+  margin-left: 2px;
+  transition: transform 0.25s ease;
+}
+.nav-profile-wrapper:hover .nav-chevron {
+  transform: rotate(180deg);
+}
+
+/* ---------- Dropdown Menu ---------- */
+.nav-dropdown {
+  position: absolute;
+  top: calc(100% + 2px);  /* minimal gap */
+  right: 0;
+  width: 290px;
+  max-height: 75vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  z-index: 2000;
+
+  /* Hidden by default */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.22s ease, visibility 0s linear 0.2s;
+}
+
+/* Inner container to clip the content with rounded corners */
+.nav-dropdown-inner {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Bridge gap between trigger and dropdown to prevent flicker */
+.nav-dropdown::before {
+  content: '';
+  position: absolute;
+  top: -14px;
+  left: -10px;
+  right: -10px;
+  height: 16px;
+}
+
+/* Show on wrapper hover — CSS approach */
+.nav-profile-wrapper:hover .nav-dropdown,
+.nav-dropdown.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+  transition: opacity 0.2s ease, transform 0.22s ease, visibility 0s linear 0s;
+}
+
+/* ---------- Dropdown Header ---------- */
+.dd-header {
+  padding: 18px 18px 14px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #e0f2fe;
+}
+
+.dd-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, #38bdf8 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 3px 10px rgba(14, 165, 233, 0.4);
+  overflow: hidden;
+}
+.dd-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dd-header-info {
+  flex: 1;
+  min-width: 0;
+}
+.dd-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dd-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-top: 4px;
+}
+.dd-role-badge i {
+  font-size: 0.65rem;
+}
+.dd-role-candidate {
+  background: #dbeafe;
+  color: #2563eb;
+}
+.dd-role-employer {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+.dd-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: #16a34a;
+  font-weight: 500;
+  margin-top: 3px;
+}
+.dd-verified i {
+  font-size: 0.7rem;
+}
+
+/* ---------- Dropdown Sections ---------- */
+.dd-section {
+  padding: 10px 8px 4px;
+}
+.dd-section + .dd-section {
+  border-top: 1px solid var(--border-light);
+}
+
+.dd-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-light);
+  padding: 4px 10px 6px;
+}
+
+.dd-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+.dd-item:hover {
+  background: #f0f9ff;
+  color: var(--primary);
+}
+.dd-item:hover .dd-item-icon {
+  background: var(--primary);
+  color: white;
+}
+
+.dd-item-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--border-light);
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dd-item-text {
+  flex: 1;
+  line-height: 1.3;
+}
+
+/* ---------- Dropdown Footer (logout) ---------- */
+.dd-footer {
+  padding: 8px;
+  border-top: 1px solid var(--border-light);
+}
+.dd-logout {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #ef4444;
+  cursor: pointer;
+  transition: background 0.15s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+.dd-logout:hover {
+  background: #fef2f2;
+}
+.dd-logout .dd-item-icon {
+  background: #fee2e2;
+  color: #ef4444;
+}
+.dd-logout:hover .dd-item-icon {
+  background: #ef4444;
+  color: white;
+}

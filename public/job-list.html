@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách việc làm</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/navbar.css">
+    <link rel="stylesheet" href="../css/pages/job.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+  <div class="page-wrapper">
+    <div id="navbar-placeholder"></div>
+    <section class="main-content">
+      <div class="container">
+        <div class="content-header">
+          <h1>🔍 Tìm việc làm</h1>
+          <p>Tìm kiếm và lọc công việc phù hợp với bạn</p>
+        </div>
+
+        <!-- Search & Filters -->
+        <div class="filter-bar">
+          <div class="search-box" style="flex:1;max-width:100%">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Tìm theo tên việc làm, công ty..." oninput="debouncedSearch()">
+          </div>
+          <select id="filterType" onchange="applyFilters()">
+            <option value="">Loại hình</option>
+            <option value="full-time">Full-time</option>
+            <option value="part-time">Part-time</option>
+          </select>
+          <select id="filterExp" onchange="applyFilters()">
+            <option value="">Kinh nghiệm</option>
+            <option value="0-1 năm">0-1 năm</option>
+            <option value="1-3 năm">1-3 năm</option>
+            <option value="2-5 năm">2-5 năm</option>
+          </select>
+          <select id="filterCat" onchange="applyFilters()">
+            <option value="">Danh mục</option>
+            <option value="Công nghệ">Công nghệ</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Thiết kế">Thiết kế</option>
+            <option value="Kinh doanh">Kinh doanh</option>
+            <option value="Hành chính">Hành chính</option>
+          </select>
+          <select id="sortBy" onchange="applyFilters()">
+            <option value="newest">Mới nhất</option>
+            <option value="salary-desc">Lương cao → thấp</option>
+            <option value="salary-asc">Lương thấp → cao</option>
+            <option value="views">Xem nhiều nhất</option>
+          </select>
+          <button class="btn btn-sm btn-ghost" onclick="clearFilters()">✕ Xóa lọc</button>
+        </div>
+
+        <div class="flex-between mb-2">
+          <p style="color:var(--text-light);font-size:.9rem" id="resultCount"></p>
+        </div>
+
+        <div class="grid grid-2 stagger" id="jobList"></div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </section>
+    <footer class="footer" id="footer"></footer>
+  </div>
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+    App.initScrollEffect();
+
+    let currentPage = 1;
+    const perPage = 8;
+
+    // Read URL params
+    const params = new URLSearchParams(location.search);
+    if (params.get('q')) document.getElementById('searchInput').value = params.get('q');
+    if (params.get('cat')) document.getElementById('filterCat').value = params.get('cat');
+
+    function getFilteredJobs() {
+      let jobs = DB.getJobs().filter(j => j.status === 'active');
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      const type = document.getElementById('filterType').value;
+      const exp = document.getElementById('filterExp').value;
+      const cat = document.getElementById('filterCat').value;
+      const sort = document.getElementById('sortBy').value;
+
+      if (q) jobs = jobs.filter(j => j.title.toLowerCase().includes(q) || j.companyName.toLowerCase().includes(q) || j.location.toLowerCase().includes(q));
+      if (type) jobs = jobs.filter(j => j.type === type);
+      if (exp) jobs = jobs.filter(j => j.experience === exp);
+      if (cat) jobs = jobs.filter(j => j.category === cat);
+
+      // Sort
+      if (sort === 'newest') jobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      else if (sort === 'views') jobs.sort((a, b) => b.views - a.views);
+      else if (sort === 'salary-desc' || sort === 'salary-asc') {
+        const getSalaryNum = s => parseInt((s.match(/\d+/) || [0])[0]);
+        jobs.sort((a, b) => sort === 'salary-desc' ? getSalaryNum(b.salary) - getSalaryNum(a.salary) : getSalaryNum(a.salary) - getSalaryNum(b.salary));
+      }
+      return jobs;
+    }
+
+    function renderJobs() {
+      const jobs = getFilteredJobs();
+      const { data, totalPages } = App.paginate(jobs, currentPage, perPage);
+      document.getElementById('resultCount').textContent = `Tìm thấy ${jobs.length} việc làm`;
+
+      if (data.length === 0) {
+        document.getElementById('jobList').innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><h3>Không tìm thấy kết quả</h3><p>Thử thay đổi từ khóa hoặc bộ lọc</p></div>`;
+        document.getElementById('pagination').innerHTML = '';
+        return;
+      }
+
+      const user = Auth.getCurrentUser();
+      const logos = ['💻','🏗️','📊','🎨','📱','🚀','⚡','🌟'];
+      document.getElementById('jobList').innerHTML = data.map(job => {
+        const saved = user && user.role === 'candidate' ? DB.isJobSaved(user.id, job.id) : false;
+        const logo = logos[job.title.length % logos.length];
+        return `
+          <div class="job-card animate-fade-up">
+            <div class="job-header">
+              <div class="company-logo">${logo}</div>
+              <div style="flex:1">
+                <div class="job-title">${highlightText(job.title)}</div>
+                <div class="job-company">${highlightText(job.companyName)}</div>
+              </div>
+              ${user && user.role === 'candidate' ? `<button class="save-btn ${saved ? 'saved' : ''}" onclick="toggleSave('${job.id}', this)" title="${saved ? 'Bỏ lưu' : 'Lưu việc làm'}">❤</button>` : ''}
+            </div>
+            <div class="job-meta">
+              <span>📍 ${job.location}</span>
+              <span>💰 ${job.salary}</span>
+              <span>⏰ ${job.type}</span>
+              <span>🧑‍💼 ${job.experience}</span>
+            </div>
+            <div class="job-tags">
+              <span class="badge badge-primary">${job.category}</span>
+              <span class="badge badge-neutral">${job.experience}</span>
+            </div>
+            <div class="job-actions">
+              <a href="../candidate/job-detail.html?id=${job.id}" class="btn btn-sm btn-primary">Xem chi tiết</a>
+              <div class="flex" style="gap:16px;font-size:.82rem;color:var(--text-muted)">
+                <span>👁 ${job.views}</span>
+                <span>📅 ${App.timeAgo(job.createdAt)}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+
+      // Pagination
+      const pag = document.getElementById('pagination');
+      App.renderPagination(pag, totalPages, currentPage, changePage);
+    }
+
+    function highlightText(text) {
+      const q = document.getElementById('searchInput').value.trim();
+      if (!q) return text;
+      const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      return text.replace(re, '<mark style="background:#FEF08A;padding:1px 2px;border-radius:3px">$1</mark>');
+    }
+
+    function changePage(p) { currentPage = p; renderJobs(); window.scrollTo({ top: 200, behavior: 'smooth' }); }
+    function applyFilters() { currentPage = 1; renderJobs(); }
+    const debouncedSearch = App.debounce(() => applyFilters(), 300);
+    function clearFilters() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('filterType').value = '';
+      document.getElementById('filterExp').value = '';
+      document.getElementById('filterCat').value = '';
+      document.getElementById('sortBy').value = 'newest';
+      applyFilters();
+    }
+    function toggleSave(jobId, btn) {
+      const user = Auth.getCurrentUser();
+      if (!user) { location.href = 'login.html'; return; }
+      const saved = DB.toggleSaveJob(user.id, jobId);
+      btn.classList.toggle('saved', saved);
+      Toast.success(saved ? 'Đã lưu việc làm ❤️' : 'Đã bỏ lưu');
+    }
+
+    renderJobs();
+  </script>
+  <script src="navbar.js"></script>
+
+</body>
+</html>
