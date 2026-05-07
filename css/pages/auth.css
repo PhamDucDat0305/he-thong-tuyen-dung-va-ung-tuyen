@@ -311,3 +311,80 @@
     transform: translateY(0);
   }
 }
+
+@media (max-width: 600px) {
+  /* Container: bỏ position relative, stack dọc */
+  .container {
+    min-height: unset;
+    border-radius: 16px;
+    overflow: visible;
+  }
+
+  /* Ẩn overlay animation — không dùng được trên mobile */
+  .overlay-container {
+    display: none;
+  }
+
+  /* Cả 2 form: bỏ position absolute, hiển thị bình thường */
+  .form-container {
+    position: relative;
+    width: 100%;
+    height: auto;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+    z-index: 1 !important;
+  }
+
+  /* Mặc định: chỉ hiện form đăng nhập */
+  .sign-up-container {
+    display: none;
+  }
+  .sign-in-container {
+    display: block;
+  }
+
+  /* Khi active: chỉ hiện form đăng ký */
+  .container.active .sign-up-container {
+    display: block;
+    animation: none;
+  }
+  .container.active .sign-in-container {
+    display: none;
+  }
+
+  /* Form padding */
+  .form-container form {
+    padding: 28px 20px;
+    height: auto;
+  }
+
+  /* Form row: stack dọc */
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Nút chuyển tab: thêm vào cuối mỗi form */
+  .mobile-switch {
+    display: block;
+    margin-top: 16px;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    text-align: center;
+  }
+  .mobile-switch button {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+}
+
+@media (min-width: 601px) {
+  .mobile-switch {
+    display: none;
+  }
+}

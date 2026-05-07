@@ -184,3 +184,44 @@
     width: 100%;
   }
 }
+@media (max-width: 768px) {
+  /* Header */
+  .content-header {
+    padding: 32px 16px;
+    border-radius: 16px;
+  }
+  .content-header h1 {
+    font-size: 1.6rem;
+  }
+  .content-header p {
+    font-size: 1rem;
+  }
+
+  /* Job card: 1 cột thay vì 2 */
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Job meta: 1 cột thay vì 2 */
+  .job-meta {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* Job actions: stack dọc */
+  .job-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .job-actions .btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Bỏ hover effect trên mobile (không có hover) */
+  .job-card:hover {
+    transform: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+  }
+}
