@@ -455,7 +455,22 @@
 }
 @media (max-width: 768px) {
   .nav-auth-btn {
-    padding: 6px 12px;
+    padding: 6px 6px;
     font-size: 0.8rem;
+  }
+}
+@media (max-width: 480px) {
+  .navbar-right {
+    gap: 6px;
+  }
+
+  .nav-auth-btn {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+    gap: 4px;
+  }
+
+  .nav-auth-btn i {
+    font-size: 0.85rem;
   }
 }
