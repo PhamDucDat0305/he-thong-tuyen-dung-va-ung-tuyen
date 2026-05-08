@@ -1,5 +1,5 @@
 
-/* ---------- Base Navbar ---------- */
+/* ---------- Base Navbar navbar.css ---------- */
 .navbar {
   height: 70px;
   background: rgba(255, 255, 255, 0.96);
@@ -451,5 +451,11 @@
 @media (min-width: 769px) {
   .navbar-hamburger {
     display: none;
+  }
+}
+@media (max-width: 768px) {
+  .nav-auth-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
   }
 }
