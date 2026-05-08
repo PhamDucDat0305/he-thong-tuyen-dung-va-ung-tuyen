@@ -139,7 +139,7 @@
           <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
         </a>
         <a href="auth.html?mode=register" class="nav-auth-btn nav-btn-register" id="navRegisterBtn">
-          <i class="fa-solid fa-user-plus"></i> Đăng ký
+          <i class="fa-solid fa-user-plus"></i> <span class="reg-text">Đăng ký</span>
         </a>
       </div>`;
 

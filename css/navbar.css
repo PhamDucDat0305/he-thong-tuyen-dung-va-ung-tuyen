@@ -446,6 +446,9 @@
     border-radius: 2px;
     transition: all 0.3s;
   }
+  .navbar-hamburger { order: -1; }
+  .navbar-logo      { order: 0;  }
+  .navbar-right     { order: 1;  }
 }
 
 @media (min-width: 769px) {
@@ -472,5 +475,10 @@
 
   .nav-auth-btn i {
     font-size: 0.85rem;
+  }
+}
+@media (max-width: 480px) {
+  .reg-text {
+    display: none;
   }
 }
