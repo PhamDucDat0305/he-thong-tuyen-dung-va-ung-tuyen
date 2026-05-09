@@ -4,14 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>Sửa công ty — JobViệt</title>
-    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/styles.css" /><link rel="stylesheet" href="../css/navbar.css">
     <link rel="stylesheet" href="../css/pages/dashboard.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   </head>
-  <body>
+  <body><div id="navbar-placeholder"></div>
     <div class="layout-sidebar">
       <aside class="sidebar" id="sidebar"></aside>
       <main class="content-area">
-        <div class="content-header"><h1>✏️ Sửa thông tin công ty</h1></div>
+        <div class="content-header"><h1><i class="fa-solid fa-pen-to-square"></i> Sửa thông tin công ty</h1></div>
         <div class="card" style="padding: 32px; max-width: 700px">
           <form onsubmit="saveCompany(event)">
             <div class="form-group">
@@ -19,7 +20,7 @@
               ><input class="form-input" id="name" required />
             </div>
             <div class="form-group">
-              <label class="form-label">Logo (emoji)</label
+              <label class="form-label">Logo (emoji hoặc icon)</label
               ><input class="form-input" id="logo" placeholder="🏢" />
             </div>
             <div class="form-row">
@@ -56,7 +57,7 @@
             </div>
             <div class="flex" style="gap: 12px">
               <button type="submit" class="btn btn-primary btn-large">
-                💾 Lưu</button
+                <i class="fa-solid fa-floppy-disk"></i> Lưu</button
               ><a href="company-profile.html" class="btn btn-secondary btn-large"
                 >Hủy</a
               >
@@ -68,7 +69,7 @@
     <script src="../js/db.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/notifications.js"></script>
-    <script src="../js/app.js"></script>
+    <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
     <script>
       const user = Auth.requireAuth(["employer"]);
       if (!user) throw "r";
@@ -99,3 +100,5 @@
     </script>
   </body>
 </html>
+
+

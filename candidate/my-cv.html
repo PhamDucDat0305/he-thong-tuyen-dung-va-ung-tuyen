@@ -4,16 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>CV của tôi — JobViệt</title>
-  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/navbar.css">
   <link rel="stylesheet" href="../css/pages/dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
-<body>
+<body><div id="navbar-placeholder"></div>
   <div class="layout-sidebar">
     <aside class="sidebar" id="sidebar"></aside>
     <main class="content-area">
       <div class="content-header flex-between">
         <div>
-          <h1>📄 CV của tôi</h1>
+          <h1><i class="fa-solid fa-file-lines"></i> CV của tôi</h1>
           <p>Quản lý hồ sơ CV để ứng tuyển nhanh chóng</p>
         </div>
         <button class="btn btn-primary" onclick="Toast.info('Đang mở form tạo CV mới')">+ Tạo CV Mới</button>
@@ -55,7 +56,7 @@
   <script src="../js/db.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/notifications.js"></script>
-  <script src="../js/app.js"></script>
+  <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
   <script>
     const user = Auth.requireAuth(['candidate']);
     if (!user) throw 'redirect';
@@ -63,3 +64,4 @@
   </script>
 </body>
 </html>
+

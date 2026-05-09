@@ -22,7 +22,7 @@ const Auth = {
         size: "",
         location: "",
         website: "",
-        logo: "🏢",
+        logo: '<i class="fa-solid fa-building"></i>',
       });
     }
     return { success: true, user };
@@ -42,7 +42,8 @@ const Auth = {
   logout() {
     localStorage.removeItem("currentUser");
     sessionStorage.removeItem("loggedInUser");
-    const authPath = location.pathname.includes('/employer/') ? '../auth.html' : 'auth.html';
+    const isSubfolder = location.pathname.includes('/employer/') || location.pathname.includes('/candidate/');
+    const authPath = isSubfolder ? '../auth.html' : 'auth.html';
     window.location.href = authPath;
   },
 

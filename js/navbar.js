@@ -30,9 +30,9 @@
   }
 
   function resolveHref(path) {
-  const inSubfolder = location.pathname.includes('/employer/');
-  return inSubfolder ? '../' + path : path;
-}
+    const inSubfolder = location.pathname.includes('/employer/') || location.pathname.includes('/candidate/');
+    return inSubfolder ? '../' + path : path;
+  }
   /* ══════════════════════════════════════════════════════════
      MENU DATA  — edit here to add / remove items
      ══════════════════════════════════════════════════════════ */
@@ -51,6 +51,7 @@
         items: [
           { icon: "fa-bookmark", text: "Việc làm đã lưu", href: resolveHref("candidate/saved-jobs.html") },
           { icon: "fa-paper-plane", text: "Việc làm đã ứng tuyển", href: resolveHref("candidate/my-applications.html") },
+          { icon: "fa-circle-check", text: "Việc làm trúng tuyển", href: resolveHref("candidate/accepted-jobs.html") },
         ],
       },
       {
@@ -106,10 +107,11 @@
       {
         label: "Quản lý ứng viên",
         items: [
-          { icon: "fa-users", text: "Danh sách ứng viên", href: "#" },
-          { icon: "fa-user-check", text: "Ứng viên đã ứng tuyển", href: "#" },
-          { icon: "fa-heart", text: "Ứng viên đã lưu", href: "#" },
-          { icon: "fa-calendar-check", text: "Lịch phỏng vấn", href: "#" },
+          { icon: "fa-users", text: "Danh sách ứng viên", href: resolveHref("employer/applicants.html") },
+          { icon: "fa-user-check", text: "Ứng viên đã ứng tuyển", href: resolveHref("employer/applied-candidates.html") },
+          { icon: "fa-calendar-check", text: "Lịch phỏng vấn", href: resolveHref("employer/interviews.html") },
+          { icon: "fa-circle-check", text: "Ứng viên đã trúng tuyển", href: resolveHref("employer/accepted-candidates.html") },
+          { icon: "fa-heart", text: "Ứng viên đã lưu", href: resolveHref("employer/saved-candidates.html") },
         ],
       },
       {
@@ -130,16 +132,16 @@
       {
         label: "Báo cáo & thống kê",
         items: [
-          { icon: "fa-chart-line", text: "Lượt xem tin", href: "#" },
-          { icon: "fa-chart-pie", text: "Hiệu quả tuyển dụng", href: "#" },
+          { icon: "fa-chart-line", text: "Lượt xem tin", href: resolveHref("employer/stats-views.html") },
+          { icon: "fa-chart-pie", text: "Hiệu quả tuyển dụng", href: resolveHref("employer/stats-performance.html") },
         ],
       },
       {
         label: "Cá nhân & Bảo mật",
         items: [
-          { icon: "fa-id-card", text: "Thông tin tài khoản", href: "#" },
-          { icon: "fa-key", text: "Đổi mật khẩu", href: "#" },
-          { icon: "fa-shield-halved", text: "Cài đặt bảo mật", href: "#" },
+          { icon: "fa-id-card", text: "Thông tin tài khoản", href: resolveHref("employer/account.html") },
+          { icon: "fa-key", text: "Đổi mật khẩu", href: resolveHref("employer/password.html") },
+          { icon: "fa-shield-halved", text: "Cài đặt bảo mật", href: resolveHref("employer/security.html") },
         ],
       },
     ],
@@ -174,10 +176,10 @@
   function buildNavbar(user) {
     /* ── Nav links ── */
     const links = [
-      { href: "index.html", label: "Trang chủ" },
-      { href: "job-list.html", label: "Việc làm" },
-      { href: "about.html", label: "Giới thiệu" },
-      { href: "contact.html", label: "Liên hệ" },
+      { href: resolveHref("index.html"), label: "Trang chủ" },
+      { href: resolveHref("job-list.html"), label: "Việc làm" },
+      { href: resolveHref("about.html"), label: "Giới thiệu" },
+      { href: resolveHref("contact.html"), label: "Liên hệ" },
     ];
     const cur = location.pathname.split("/").pop() || "index.html";
     const navLinksHTML = links
@@ -190,10 +192,10 @@
     /* ── Logged-out buttons ── */
     const authHTML = `
       <div class="navbar-right" id="navAuthArea">
-        <a href="auth.html" class="nav-auth-btn nav-btn-login" id="navLoginBtn">
+        <a href="${resolveHref("auth.html")}" class="nav-auth-btn nav-btn-login" id="navLoginBtn">
           <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
         </a>
-        <a href="auth.html?mode=register" class="nav-auth-btn nav-btn-register" id="navRegisterBtn">
+        <a href="${resolveHref("auth.html?mode=register")}" class="nav-auth-btn nav-btn-register" id="navRegisterBtn">
           <i class="fa-solid fa-user-plus"></i> <span class="reg-text">Đăng ký</span>
         </a>
       </div>`;
@@ -252,7 +254,7 @@
     return `
       <nav class="navbar" id="navbar" role="navigation" aria-label="Main navigation">
         <div class="navbar-inner">
-          <a href="index.html" class="navbar-logo" aria-label="JobViệt trang chủ">
+          <a href="${resolveHref("index.html")}" class="navbar-logo" aria-label="JobViệt trang chủ">
             <i class="fa-solid fa-briefcase"></i> JobViệt
           </a>
           <div class="navbar-links" id="navLinks">
@@ -350,12 +352,22 @@
       logoutBtn.addEventListener("click", () => {
         sessionStorage.removeItem("loggedInUser");
         localStorage.removeItem("currentUser");
-        const oldNav = document.getElementById("navbar");
-        if (oldNav) {
-          const ph = document.createElement("div");
-          ph.id = "navbar-placeholder";
-          oldNav.replaceWith(ph);
-          mount();
+        
+        const stayPages = ['contact.html', 'about.html', 'job-list.html'];
+        const currentPage = location.pathname.split('/').pop() || 'index.html';
+        
+        if (stayPages.includes(currentPage)) {
+          // Stay and refresh navbar
+          const oldNav = document.getElementById("navbar");
+          if (oldNav) {
+            const ph = document.createElement("div");
+            ph.id = "navbar-placeholder";
+            oldNav.replaceWith(ph);
+            mount();
+          }
+        } else {
+          // Redirect to home
+          location.href = resolveHref('index.html');
         }
       });
     }

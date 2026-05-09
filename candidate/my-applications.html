@@ -4,65 +4,121 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Việc làm đã ứng tuyển — JobViệt</title>
-  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/navbar.css">
   <link rel="stylesheet" href="../css/pages/dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
-<body>
+<body><div id="navbar-placeholder"></div>
   <div class="layout-sidebar">
     <aside class="sidebar" id="sidebar"></aside>
     <main class="content-area">
       <div class="content-header">
-        <h1>📩 Việc làm đã ứng tuyển</h1>
+        <h1><i class="fa-solid fa-envelope-open-text"></i> Việc làm đã ứng tuyển</h1>
         <p>Theo dõi trạng thái các hồ sơ bạn đã nộp</p>
       </div>
 
-      <div class="table-wrapper animate-fade-up">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Công việc</th>
-              <th>Công ty</th>
-              <th>Ngày nộp</th>
-              <th>Trạng thái</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
-          <tbody id="appliedJobsList">
-            <!-- Rendered by JS -->
-          </tbody>
-        </table>
+      <div class="card mb-3">
+        <h3 class="mb-2"><i class="fa-solid fa-hourglass-half text-warning"></i> Đang chờ duyệt</h3>
+        <div class="table-wrapper">
+          <table class="table">
+            <tbody id="pendingList"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <h3 class="mb-2"><i class="fa-solid fa-circle-check text-success"></i> Đã trúng tuyển</h3>
+        <div class="table-wrapper">
+          <table class="table">
+            <tbody id="acceptedList"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="mb-2"><i class="fa-solid fa-list-check text-info"></i> Tất cả hồ sơ đã nộp</h3>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Công việc</th>
+                <th>Công ty</th>
+                <th>Ngày nộp</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="appliedJobsList"></tbody>
+          </table>
+        </div>
       </div>
     </main>
   </div>
   <script src="../js/db.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/notifications.js"></script>
-  <script src="../js/app.js"></script>
+  <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
   <script>
     const user = Auth.requireAuth(['candidate']);
     if (!user) throw 'redirect';
     App.renderSidebar('candidate', 'my_apps');
 
-    const apps = DB.getApplicationsByCandidate(user.id).sort((a,b) => new Date(b.appliedAt)-new Date(a.appliedAt));
+    const allApps = DB.getApplicationsByCandidate(user.id).sort((a,b) => new Date(b.appliedAt)-new Date(a.appliedAt));
     
-    if (!apps.length) {
-      document.getElementById('appliedJobsList').innerHTML = '<tr><td colspan="5" class="text-center" style="padding:40px"><div class="empty-state" style="border:none"><div class="empty-icon">📭</div><p>Bạn chưa ứng tuyển việc làm nào</p></div></td></tr>';
-    } else {
-      const statusMap = { pending: ['⏳ Đang chờ', 'badge-warning'], accepted: ['✅ Chấp nhận', 'badge-success'], rejected: ['❌ Từ chối', 'badge-danger'] };
-      document.getElementById('appliedJobsList').innerHTML = apps.map(a => {
+    function renderList(targetId, filterFn) {
+      const filtered = allApps.filter(filterFn);
+      const container = document.getElementById(targetId);
+      
+    const statusMap = { 
+      applied: ['<i class="fa-solid fa-envelope"></i> Đã nộp hồ sơ', 'badge-info'],
+      interview_scheduled: ['<i class="fa-solid fa-calendar-check"></i> Đang phỏng vấn', 'badge-warning'],
+      accepted: ['<i class="fa-solid fa-circle-check"></i> Trúng tuyển', 'badge-success'],
+      rejected: ['<i class="fa-solid fa-circle-xmark"></i> Từ chối', 'badge-danger'],
+      failed: ['<i class="fa-solid fa-user-xmark"></i> Không đạt', 'badge-dark']
+    };
+    
+    function renderList(targetId, filterFn) {
+      const filtered = allApps.filter(filterFn);
+      const container = document.getElementById(targetId);
+      
+      if (!filtered.length) {
+        container.innerHTML = `<tr><td colspan="5" class="text-center" style="padding:30px; color:var(--text-light)">Trống</td></tr>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(a => {
         const job = DB.getJobById(a.jobId);
-        const [label, cls] = statusMap[a.status] || statusMap.pending;
+        const [label, cls] = statusMap[a.status] || ['Chưa rõ', 'badge-neutral'];
+        let extraInfo = '';
+        
+        if (a.status === 'interview_scheduled') {
+          const interview = DB.getInterviewByApplication(a.id);
+          if (interview) {
+            extraInfo = `<div style="font-size:0.8rem; color:var(--primary); margin-top:4px"><i class="fa-solid fa-clock"></i> ${interview.date} · ${interview.time} (${interview.type})</div>`;
+          }
+        }
+
         return `
           <tr>
-            <td><strong>${job ? job.title : 'Tin đã gỡ'}</strong></td>
-            <td>${job ? job.companyName : '-'}</td>
-            <td>${App.formatDate(a.appliedAt)}</td>
-            <td><span class="badge ${cls}">${label}</span></td>
-            <td>${job ? `<a href="../job-detail.html?id=${job.id}" class="btn btn-sm btn-light">Xem lại tin</a>` : ''}</td>
+            <td data-label="Công việc"><strong>${job ? job.title : 'Tin đã gỡ'}</strong>${extraInfo}</td>
+            <td data-label="Công ty">${job ? job.companyName : '-'}</td>
+            <td data-label="Ngày nộp">${App.formatDate(a.appliedAt)}</td>
+            <td data-label="Trạng thái"><span class="badge ${cls}">${label}</span></td>
+            <td data-label="Hành động">${job ? `<button onclick="App.viewJob('${job.id}')" class="btn btn-sm btn-ghost">Xem lại tin</button>` : ''}</td>
           </tr>
         `;
       }).join('');
     }
+
+    // 1. Việc làm đang xử lý (Applied + Interview)
+    renderList('pendingList', a => ['applied', 'interview_scheduled'].includes(a.status));
+    
+    // 2. Việc làm đã được nhận (Accepted)
+    renderList('acceptedList', a => a.status === 'accepted');
+    
+    // 3. Tất cả việc đã nộp (All)
+    renderList('appliedJobsList', a => true);
   </script>
 </body>
 </html>
+

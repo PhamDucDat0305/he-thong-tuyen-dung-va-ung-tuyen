@@ -2,29 +2,32 @@
 <html lang="vi">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Dashboard Nhà tuyển dụng — JobViệt</title>
   <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/navbar.css">
   <link rel="stylesheet" href="../css/pages/dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
+  <div id="navbar-placeholder"></div>
   <div class="layout-sidebar">
     <aside class="sidebar" id="sidebar"></aside>
     <main class="content-area">
-      <button class="btn btn-icon btn-secondary" onclick="App.toggleSidebar()" style="display:none;margin-bottom:16px" id="sidebarToggle">☰</button>
+      <button class="btn btn-icon btn-secondary" onclick="App.toggleSidebar()" style="display:none;margin-bottom:16px" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
       <div class="content-header"><h1 id="greeting"></h1><p>Tổng quan hoạt động tuyển dụng</p></div>
       <div class="grid grid-4 stagger" id="stats"></div>
       <div class="grid grid-2 mt-3">
         <div class="card">
-          <h3 class="mb-2">📋 Tin tuyển dụng gần đây</h3>
+          <h3 class="mb-2"><i class="fa-solid fa-rectangle-list text-info"></i> Tin tuyển dụng gần đây</h3>
           <div id="recentJobs"></div>
           <a href="my-jobs.html" class="btn btn-ghost mt-2">Xem tất cả →</a>
         </div>
         <div class="card">
-          <h3 class="mb-2">📩 Ứng viên mới nhất</h3>
+          <h3 class="mb-2"><i class="fa-solid fa-users text-primary"></i> Ứng viên mới nhất</h3>
           <div id="recentApps"></div>
         </div>
       </div>
     </main>
   </div>
-  <script src="../js/db.js"></script><script src="../js/auth.js"></script><script src="../js/notifications.js"></script><script src="../js/app.js"></script>
+  <script src="../js/db.js"></script><script src="../js/auth.js"></script><script src="../js/notifications.js"></script><script src="../js/app.js"></script><script src="../js/navbar.js"></script>
   <script>
     const user = Auth.requireAuth(['employer']);
     if(!user) throw 'r';
@@ -36,10 +39,10 @@
     const totalViews = myJobs.reduce((s,j) => s + (j.views||0), 0);
 
     document.getElementById('stats').innerHTML = `
-      <div class="stat-card animate-fade-up"><div class="stat-icon blue">📄</div><div class="stat-value">${myJobs.length}</div><div class="stat-label">Tin đã đăng</div></div>
-      <div class="stat-card animate-fade-up"><div class="stat-icon green">📩</div><div class="stat-value">${allApps.length}</div><div class="stat-label">Lượt ứng tuyển</div></div>
-      <div class="stat-card animate-fade-up"><div class="stat-icon orange">👁</div><div class="stat-value">${totalViews}</div><div class="stat-label">Lượt xem</div></div>
-      <div class="stat-card animate-fade-up"><div class="stat-icon cyan">⏳</div><div class="stat-value">${allApps.filter(a=>a.status==='pending').length}</div><div class="stat-label">Chờ duyệt</div></div>
+      <div class="stat-card animate-fade-up"><div class="stat-icon blue"><i class="fa-solid fa-file-lines"></i></div><div class="stat-value">${myJobs.length}</div><div class="stat-label">Tin đã đăng</div></div>
+      <div class="stat-card animate-fade-up"><div class="stat-icon green"><i class="fa-solid fa-envelope-open-text"></i></div><div class="stat-value">${allApps.length}</div><div class="stat-label">Lượt ứng tuyển</div></div>
+      <div class="stat-card animate-fade-up"><div class="stat-icon orange"><i class="fa-solid fa-eye"></i></div><div class="stat-value">${totalViews}</div><div class="stat-label">Lượt xem</div></div>
+      <div class="stat-card animate-fade-up"><div class="stat-icon cyan"><i class="fa-solid fa-hourglass-half"></i></div><div class="stat-value">${allApps.filter(a=>a.status==='pending').length}</div><div class="stat-label">Chờ duyệt</div></div>
     `;
 
     // Recent jobs
@@ -56,7 +59,7 @@
       const job = DB.getJobById(a.jobId);
       return `<div style="padding:12px 0;border-bottom:1px solid var(--border-light)" class="flex-between">
         <div><strong>${a.fullName}</strong><br><span style="font-size:.82rem;color:var(--text-light)">${job?job.title:'-'} · ${App.timeAgo(a.appliedAt)}</span></div>
-        <span class="badge badge-warning">⏳</span>
+        <span class="badge badge-warning"><i class="fa-solid fa-hourglass-half"></i></span>
       </div>`;
     }).join('') || '<p style="color:var(--text-light);padding:20px 0">Chưa có ứng viên</p>';
 

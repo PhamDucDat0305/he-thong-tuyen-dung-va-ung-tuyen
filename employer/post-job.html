@@ -4,15 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>Đăng tuyển — JobViệt</title>
-    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/styles.css" /><link rel="stylesheet" href="../css/navbar.css">
     <link rel="stylesheet" href="../css/pages/dashboard.css" />
-  </head>
-  <body>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+  <body><div id="navbar-placeholder"></div>
     <div class="layout-sidebar">
       <aside class="sidebar" id="sidebar"></aside>
       <main class="content-area">
         <div class="content-header">
-          <h1>📝 Đăng tin tuyển dụng</h1>
+          <h1><i class="fa-solid fa-pen-to-square"></i> Đăng tin tuyển dụng</h1>
           <p>Tạo tin tuyển dụng mới để thu hút ứng viên</p>
         </div>
         <div class="card" style="padding: 32px; max-width: 800px">
@@ -102,7 +103,7 @@
               ></textarea>
             </div>
             <button type="submit" class="btn btn-primary btn-large" style="width: 100%; margin-top: 10px;">
-              🚀 Đăng tuyển
+              <i class="fa-solid fa-rocket"></i> Đăng tuyển
             </button>
           </form>
         </div>
@@ -111,7 +112,7 @@
     <script src="../js/db.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/notifications.js"></script>
-    <script src="../js/app.js"></script>
+    <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
     <script>
       const user = Auth.requireAuth(["employer"]);
       if (!user) throw "r";
@@ -133,6 +134,12 @@
           companyName: company ? company.name : user.fullName,
           createdBy: user.id,
         });
+
+        // Tự động cập nhật UI (nếu đang ở trang có hiển thị job list)
+        if (typeof App !== 'undefined' && App.renderFeaturedJobs) {
+          App.renderFeaturedJobs();
+        }
+
         Toast.success("🎉 Đăng tin tuyển dụng thành công!");
         setTimeout(() => {
           location.href = "my-jobs.html";
@@ -141,3 +148,5 @@
     </script>
   </body>
 </html>
+
+

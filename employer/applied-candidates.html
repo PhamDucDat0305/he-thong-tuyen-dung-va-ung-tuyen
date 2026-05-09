@@ -4,15 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Ứng viên đã ứng tuyển — JobViệt</title>
-  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/navbar.css">
   <link rel="stylesheet" href="../css/pages/dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
-<body>
+<body><div id="navbar-placeholder"></div>
   <div class="layout-sidebar">
     <aside class="sidebar" id="sidebar"></aside>
     <main class="content-area">
       <div class="content-header">
-        <h1>📥 Ứng viên đã ứng tuyển</h1>
+        <h1><i class="fa-solid fa-inbox"></i> Ứng viên đã ứng tuyển</h1>
         <p>Danh sách tất cả các hồ sơ ứng tuyển vào công ty bạn</p>
       </div>
 
@@ -37,7 +38,7 @@
   <script src="../js/db.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/notifications.js"></script>
-  <script src="../js/app.js"></script>
+  <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
   <script>
     const user = Auth.requireAuth(['employer']);
     if (!user) throw 'redirect';
@@ -45,30 +46,39 @@
 
     function render() {
       const myJobs = DB.getJobsByEmployer(user.id);
-      const allApps = myJobs.flatMap(j => DB.getApplicationsByJob(j.id)).sort((a,b) => new Date(b.appliedAt)-new Date(a.appliedAt));
+      const allApps = myJobs
+        .flatMap(j => DB.getApplicationsByJob(j.id))
+        .filter(a => a.status === 'applied') // Chỉ hiện những ứng viên mới nộp
+        .sort((a,b) => new Date(b.appliedAt)-new Date(a.appliedAt));
       
       if (!allApps.length) {
         document.getElementById('appliedList').innerHTML = '<tr><td colspan="5" class="text-center" style="padding:40px">Chưa có ứng viên nào ứng tuyển</td></tr>';
         return;
       }
 
-      const statusMap = { pending: ['⏳ Chờ duyệt', 'badge-warning'], accepted: ['✅ Chấp nhận', 'badge-success'], rejected: ['❌ Từ chối', 'badge-danger'] };
+      const statusMap = { 
+        applied: ['<i class="fa-solid fa-envelope"></i> Mới ứng tuyển', 'badge-info'],
+        interview_scheduled: ['<i class="fa-solid fa-calendar-check"></i> Đang phỏng vấn', 'badge-warning'],
+        accepted: ['<i class="fa-solid fa-circle-check"></i> Trúng tuyển', 'badge-success'],
+        rejected: ['<i class="fa-solid fa-circle-xmark"></i> Từ chối', 'badge-danger'],
+        failed: ['<i class="fa-solid fa-user-xmark"></i> Không đạt', 'badge-dark']
+      };
 
       document.getElementById('appliedList').innerHTML = allApps.map(a => {
         const job = DB.getJobById(a.jobId);
-        const [label, cls] = statusMap[a.status] || statusMap.pending;
+        const [label, cls] = statusMap[a.status] || ['Chưa rõ', 'badge-neutral'];
         return `
           <tr>
-            <td>
+            <td data-label="Ứng viên">
               <div class="flex" style="gap:12px">
                 <div class="avatar" style="width:40px;height:40px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--text);border:1px solid var(--border)">${a.fullName[0]}</div>
                 <div><strong>${a.fullName}</strong><br><span style="font-size:0.85rem;color:var(--text-light)">${a.email}</span></div>
               </div>
             </td>
-            <td><strong>${job ? job.title : 'Đã xóa'}</strong></td>
-            <td>${App.formatDate(a.appliedAt)}</td>
-            <td><span class="badge ${cls}">${label}</span></td>
-            <td>
+            <td data-label="Vị trí ứng tuyển"><strong>${job ? job.title : 'Đã xóa'}</strong></td>
+            <td data-label="Ngày nộp">${App.formatDate(a.appliedAt)}</td>
+            <td data-label="Trạng thái"><span class="badge ${cls}">${label}</span></td>
+            <td data-label="Thao tác">
               <a href="job-applicants.html?id=${a.jobId}" class="btn btn-sm btn-light">Xem chi tiết</a>
             </td>
           </tr>
@@ -80,3 +90,4 @@
   </script>
 </body>
 </html>
+

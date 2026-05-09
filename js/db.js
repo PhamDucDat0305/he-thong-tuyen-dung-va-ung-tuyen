@@ -96,6 +96,12 @@ const DB = {
       this.getApplications().filter((a) => a.jobId !== id),
     );
   },
+  incrementJobViews(id) {
+    const jobs = this.getJobs().map((j) =>
+      j.id === id ? { ...j, views: (j.views || 0) + 1 } : j,
+    );
+    this._set("jobs", jobs);
+  },
 
   /* === APPLICATIONS === */
   getApplications() {
@@ -120,7 +126,7 @@ const DB = {
     const app = {
       id: this._id(),
       ...data,
-      status: "pending",
+      status: "applied", // Đã ứng tuyển (Applied)
       appliedAt: this._now(),
     };
     apps.push(app);
@@ -129,10 +135,42 @@ const DB = {
   },
   updateApplication(id, data) {
     const apps = this.getApplications().map((a) =>
-      a.id === id ? { ...a, ...data } : a,
+      a.id === id ? { ...a, ...data, updatedAt: this._now() } : a,
     );
     this._set("applications", apps);
     return apps.find((a) => a.id === id);
+  },
+  deleteApplication(id) {
+    this._set(
+      "applications",
+      this.getApplications().filter((a) => a.id !== id),
+    );
+    // Also delete interview if any
+    const interviews = this._get("interviews").filter(i => i.applicationId !== id);
+    this._set("interviews", interviews);
+  },
+
+  /* === INTERVIEWS === */
+  getInterviews() {
+    return this._get("interviews");
+  },
+  getInterviewByApplication(appId) {
+    return this.getInterviews().find(i => i.applicationId === appId);
+  },
+  scheduleInterview(appId, data) {
+    const interviews = this.getInterviews();
+    const interview = {
+      id: this._id(),
+      applicationId: appId,
+      ...data,
+      createdAt: this._now()
+    };
+    interviews.push(interview);
+    this._set("interviews", interviews);
+    
+    // Update application status
+    this.updateApplication(appId, { status: "interview_scheduled" });
+    return interview;
   },
 
   /* === SAVED JOBS === */
@@ -230,17 +268,25 @@ const DB = {
       email: "hoa@gmail.com",
       role: "candidate",
       phone: "0934567890",
+      title: "Senior Frontend Developer",
+      experience: "5 năm",
+      location: "Hà Nội",
+      skills: ["React", "Vue", "TypeScript", "TailwindCSS"],
       createdAt: this._now(),
       status: "active",
     };
     const cand2 = {
       id: "cand02",
-      username: "minhtri",
+      username: "hoangnam",
       password: "123456",
-      fullName: "Phạm Minh Trí",
-      email: "tri@gmail.com",
+      fullName: "Nguyễn Hoàng Nam",
+      email: "nam@gmail.com",
       role: "candidate",
       phone: "0945678901",
+      title: "Backend Developer",
+      experience: "3 năm",
+      location: "TP. Hồ Chí Minh",
+      skills: ["Node.js", "MongoDB", "Docker", "AWS"],
       createdAt: this._now(),
       status: "active",
     };
@@ -258,7 +304,7 @@ const DB = {
         size: "10000+",
         location: "Hà Nội",
         website: "https://fpt.vn",
-        logo: "🏢",
+        logo: '<i class="fa-solid fa-building"></i>',
         createdAt: this._now(),
       },
       {
@@ -271,7 +317,7 @@ const DB = {
         size: "5000+",
         location: "TP. Hồ Chí Minh",
         website: "https://vingroup.net",
-        logo: "🏗️",
+        logo: '<i class="fa-solid fa-industry"></i>',
         createdAt: this._now(),
       },
     ]);

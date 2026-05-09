@@ -4,31 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Hiệu quả tuyển dụng — JobViệt</title>
-  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/navbar.css">
   <link rel="stylesheet" href="../css/pages/dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
-<body>
+<body><div id="navbar-placeholder"></div>
   <div class="layout-sidebar">
     <aside class="sidebar" id="sidebar"></aside>
     <main class="content-area">
       <div class="content-header">
-        <h1>📊 Hiệu quả tuyển dụng</h1>
+        <h1><i class="fa-solid fa-chart-column"></i> Hiệu quả tuyển dụng</h1>
         <p>Đánh giá phễu tuyển dụng và chất lượng ứng viên</p>
       </div>
 
       <div class="grid grid-3 stagger" id="funnelStats">
         <div class="stat-card">
-          <div class="stat-icon blue">📩</div>
+          <div class="stat-icon blue"><i class="fa-solid fa-envelope-open-text"></i></div>
           <div class="stat-value" id="s_applied">0</div>
           <div class="stat-label">Hồ sơ tiếp nhận</div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon orange">📅</div>
+          <div class="stat-icon orange"><i class="fa-solid fa-calendar-days"></i></div>
           <div class="stat-value" id="s_interview">0</div>
           <div class="stat-label">Phỏng vấn</div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon green">✅</div>
+          <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
           <div class="stat-value" id="s_hired">0</div>
           <div class="stat-label">Trúng tuyển</div>
         </div>
@@ -38,12 +39,12 @@
         <h3 class="mb-2">Chi phí và Thời gian</h3>
         <div class="grid grid-2">
           <div style="padding:20px; background:var(--bg); border-radius:var(--radius)">
-            <h4 style="margin-bottom:10px; color:var(--text-light)">⏱️ Thời gian tuyển dụng trung bình</h4>
+            <h4 style="margin-bottom:10px; color:var(--text-light)"><i class="fa-solid fa-stopwatch"></i> Thời gian tuyển dụng trung bình</h4>
             <div style="font-size:2rem; font-weight:800; color:var(--primary)">14.5 ngày</div>
             <p style="font-size:0.85rem; color:var(--text-light); margin-top:5px">Nhanh hơn 12% so với tháng trước</p>
           </div>
           <div style="padding:20px; background:var(--bg); border-radius:var(--radius)">
-            <h4 style="margin-bottom:10px; color:var(--text-light)">💰 Chi phí trên một CV</h4>
+            <h4 style="margin-bottom:10px; color:var(--text-light)"><i class="fa-solid fa-money-bill-wave"></i> Chi phí trên một CV</h4>
             <div style="font-size:2rem; font-weight:800; color:var(--primary)">25,000đ</div>
             <p style="font-size:0.85rem; color:var(--text-light); margin-top:5px">Ổn định</p>
           </div>
@@ -54,7 +55,7 @@
   <script src="../js/db.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/notifications.js"></script>
-  <script src="../js/app.js"></script>
+  <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
   <script>
     const user = Auth.requireAuth(['employer']);
     if (!user) throw 'redirect';
@@ -70,3 +71,4 @@
   </script>
 </body>
 </html>
+

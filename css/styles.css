@@ -20,11 +20,24 @@
   padding: 0;
 }
 
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
 body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--text);
   line-height: 1.6;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
 }
 
 a {
@@ -43,6 +56,12 @@ a {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
 }
 
 .text-center {
@@ -112,6 +131,15 @@ a {
 .btn-large {
   padding: 14px 32px;
   font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .btn-large {
+    width: 100%;
+  }
+  .flex-between .btn {
+    width: auto;
+  }
 }
 
 .btn-light {
@@ -262,6 +290,32 @@ a {
 .mb-2 {
   margin-bottom: 16px;
 }
+
+.mt-3 {
+  margin-top: 24px;
+}
+
+.w-100 {
+  width: 100% !important;
+}
+
+@media (max-width: 768px) {
+  .flex-mobile-column {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+}
+
+/* ========== ICON COLORS ========== */
+.text-primary { color: var(--primary) !important; }
+.text-success { color: #10b981 !important; }
+.text-warning { color: #f59e0b !important; }
+.text-danger { color: #ef4444 !important; }
+.text-info { color: #06b6d4 !important; }
+.text-purple { color: #8b5cf6 !important; }
+.text-indigo { color: #6366f1 !important; }
+.text-teal { color: #14b8a6 !important; }
+.text-pink { color: #ec4899 !important; }
 
 /* ========== BADGES ========== */
 .badge {
