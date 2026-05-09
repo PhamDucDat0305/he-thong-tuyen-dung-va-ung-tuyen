@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Danh sách ứng viên — JobViệt</title><link rel="stylesheet" href="../css/style.css"></head>
+<body>
+  <div class="layout-sidebar">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="content-area">
+      <div class="content-header" id="header"></div>
+      <div id="appList"></div>
+    </main>
+  </div>
+  <script src="../js/db.js"></script><script src="../js/auth.js"></script><script src="../js/notifications.js"></script><script src="../js/app.js"></script>
+  <script>
+    const user = Auth.requireAuth(['employer']);
+    if(!user) throw 'r';
+    App.renderSidebar('employer','applicants');
+    const jobId = new URLSearchParams(location.search).get('id');
+    const job = DB.getJobById(jobId);
+
+    if (!job) { document.getElementById('header').innerHTML = '<h1>Không tìm thấy</h1>'; }
+    else {
+      document.getElementById('header').innerHTML = `<h1>👥 Ứng viên — ${job.title}</h1><p>${job.companyName} · ${job.location}</p>`;
+      render();
+    }
+
+    function render() {
+      const apps = DB.getApplicationsByJob(jobId);
+      if (!apps.length) { document.getElementById('appList').innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><h3>Chưa có ứng viên nào</h3></div>'; return; }
+      const statusMap = { pending:['⏳ Đang chờ','badge-warning'], accepted:['✅ Chấp nhận','badge-success'], rejected:['❌ Từ chối','badge-danger'] };
+      document.getElementById('appList').innerHTML = apps.map(a => {
+        const [label,cls] = statusMap[a.status]||statusMap.pending;
+        return `<div class="card mb-2 animate-fade-up" style="padding:24px">
+          <div class="flex-between flex-wrap" style="gap:12px">
+            <div class="flex" style="gap:16px">
+              <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">${a.fullName[0]}</div>
+              <div><strong style="font-size:1.05rem">${a.fullName}</strong><br><span style="font-size:.85rem;color:var(--text-light)">📧 ${a.email} · 📅 ${App.formatDate(a.appliedAt)}</span></div>
+            </div>
+            <span class="badge ${cls}">${label}</span>
+          </div>
+          <div style="margin:16px 0;padding:16px;background:var(--border-light);border-radius:var(--radius);line-height:1.7">
+            <strong style="font-size:.85rem;color:var(--text-light)">📄 CV / Giới thiệu:</strong><br>
+            <div style="margin-top:6px;white-space:pre-line">${a.cv}</div>
+          </div>
+          <div class="flex" style="gap:8px">
+            ${a.status === 'pending' ? `
+              <button class="btn btn-sm btn-success" onclick="updateStatus('${a.id}','accepted')">✅ Chấp nhận</button>
+              <button class="btn btn-sm btn-danger" onclick="updateStatus('${a.id}','rejected')">❌ Từ chối</button>
+            ` : `<span style="font-size:.85rem;color:var(--text-light)">Đã xử lý</span>`}
+          </div>
+        </div>`;
+      }).join('');
+    }
+    function updateStatus(appId, status) {
+      DB.updateApplication(appId, { status });
+      Toast.success(status === 'accepted' ? 'Đã chấp nhận ứng viên' : 'Đã từ chối ứng viên');
+      render();
+    }
+  </script>
+</body></html>

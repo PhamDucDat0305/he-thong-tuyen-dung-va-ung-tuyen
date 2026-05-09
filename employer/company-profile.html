@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Hồ sơ công ty — JobViệt</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/pages/dashboard.css" />
+  </head>
+  <body>
+    <div class="layout-sidebar">
+      <aside class="sidebar" id="sidebar"></aside>
+      <main class="content-area">
+        <div class="content-header flex-between">
+          <div><h1>🏢 Hồ sơ công ty</h1></div>
+          <a href="edit-company.html" class="btn btn-primary">✏️ Chỉnh sửa</a>
+        </div>
+        <div
+          class="card"
+          style="padding: 32px; max-width: 700px"
+          id="companyCard"
+        ></div>
+      </main>
+    </div>
+    <script src="../js/db.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/app.js"></script>
+    <script>
+      const user = Auth.requireAuth(["employer"]);
+      if (!user) throw "r";
+      App.renderSidebar("employer", "company");
+      const company = DB.getCompanyByEmployer(user.id);
+      if (!company) {
+        document.getElementById("companyCard").innerHTML =
+          '<p>Chưa có hồ sơ. <a href="edit-company.html">Tạo ngay</a></p>';
+      } else {
+        document.getElementById("companyCard").innerHTML = `
+        <div class="text-center mb-3">
+          <div style="font-size:4rem">${company.logo || "🏢"}</div>
+          <h2 style="margin-top:8px">${company.name}</h2>
+          ${company.industry ? `<span class="badge badge-primary mt-1">${company.industry}</span>` : ""}
+        </div>
+        <div style="display:grid;gap:16px">
+          <div class="flex-between" style="padding:12px 0;border-bottom:1px solid var(--border-light)"><span style="color:var(--text-light)">Mô tả</span><span style="max-width:400px;text-align:right">${company.description || "Chưa cập nhật"}</span></div>
+          <div class="flex-between" style="padding:12px 0;border-bottom:1px solid var(--border-light)"><span style="color:var(--text-light)">Quy mô</span><strong>${company.size || "Chưa cập nhật"}</strong></div>
+          <div class="flex-between" style="padding:12px 0;border-bottom:1px solid var(--border-light)"><span style="color:var(--text-light)">Địa điểm</span><strong>${company.location || "Chưa cập nhật"}</strong></div>
+          <div class="flex-between" style="padding:12px 0"><span style="color:var(--text-light)">Website</span><strong>${company.website || "Chưa cập nhật"}</strong></div>
+        </div>`;
+      }
+    </script>
+  </body>
+</html>

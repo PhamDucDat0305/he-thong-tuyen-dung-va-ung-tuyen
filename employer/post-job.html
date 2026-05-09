@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Đăng tuyển — JobViệt</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/pages/dashboard.css" />
+  </head>
+  <body>
+    <div class="layout-sidebar">
+      <aside class="sidebar" id="sidebar"></aside>
+      <main class="content-area">
+        <div class="content-header">
+          <h1>📝 Đăng tin tuyển dụng</h1>
+          <p>Tạo tin tuyển dụng mới để thu hút ứng viên</p>
+        </div>
+        <div class="card" style="padding: 32px; max-width: 800px">
+          <form onsubmit="postJob(event)">
+            <div class="form-group">
+              <label class="form-label">Tiêu đề công việc *</label
+              ><input
+                class="form-input"
+                id="title"
+                required
+                placeholder="VD: Lập trình viên Frontend React"
+              />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Mức lương *</label
+                ><input
+                  class="form-input"
+                  id="salary"
+                  required
+                  placeholder="VD: 20-35 triệu"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Địa điểm *</label
+                ><input
+                  class="form-input"
+                  id="location"
+                  required
+                  placeholder="VD: Hà Nội"
+                />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Loại hình</label
+                ><select class="form-select" id="type">
+                  <option value="full-time">Full-time</option>
+                  <option value="part-time">Part-time</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Kinh nghiệm</label
+                ><select class="form-select" id="experience">
+                  <option value="0-1 năm">0-1 năm</option>
+                  <option value="1-3 năm">1-3 năm</option>
+                  <option value="2-5 năm">2-5 năm</option>
+                  <option value="5+ năm">5+ năm</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Danh mục</label
+              ><select class="form-select" id="category">
+                <option>Công nghệ</option>
+                <option>Marketing</option>
+                <option>Thiết kế</option>
+                <option>Kinh doanh</option>
+                <option>Hành chính</option>
+                <option>Tài chính</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mô tả công việc *</label
+              ><textarea
+                class="form-textarea"
+                id="description"
+                required
+                placeholder="Mô tả chi tiết công việc..."
+              ></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Yêu cầu *</label
+              ><textarea
+                class="form-textarea"
+                id="requirements"
+                required
+                placeholder="Các kỹ năng và yêu cầu..."
+              ></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Quyền lợi</label
+              ><textarea
+                class="form-textarea"
+                id="benefits"
+                placeholder="Phúc lợi cho ứng viên..."
+              ></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-large" style="width: 100%; margin-top: 10px;">
+              🚀 Đăng tuyển
+            </button>
+          </form>
+        </div>
+      </main>
+    </div>
+    <script src="../js/db.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/app.js"></script>
+    <script>
+      const user = Auth.requireAuth(["employer"]);
+      if (!user) throw "r";
+      App.renderSidebar("employer", "post");
+
+      function postJob(e) {
+        e.preventDefault();
+        const company = DB.getCompanyByEmployer(user.id);
+        DB.createJob({
+          title: document.getElementById("title").value.trim(),
+          salary: document.getElementById("salary").value.trim(),
+          location: document.getElementById("location").value.trim(),
+          type: document.getElementById("type").value,
+          experience: document.getElementById("experience").value,
+          category: document.getElementById("category").value,
+          description: document.getElementById("description").value.trim(),
+          requirements: document.getElementById("requirements").value.trim(),
+          benefits: document.getElementById("benefits").value.trim(),
+          companyName: company ? company.name : user.fullName,
+          createdBy: user.id,
+        });
+        Toast.success("🎉 Đăng tin tuyển dụng thành công!");
+        setTimeout(() => {
+          location.href = "my-jobs.html";
+        }, 1000);
+      }
+    </script>
+  </body>
+</html>

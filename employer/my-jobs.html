@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Job đã đăng — JobViệt</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/pages/dashboard.css">
+</head>
+<body>
+  <div class="layout-sidebar">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="content-area">
+      <div class="content-header flex-between"><div><h1>📋 Tin tuyển dụng đã đăng</h1><p>Quản lý các tin tuyển dụng của bạn</p></div><a href="post-job.html" class="btn btn-primary">+ Đăng tin mới</a></div>
+      <div id="jobList"></div>
+    </main>
+  </div>
+  <script src="../js/db.js"></script><script src="../js/auth.js"></script><script src="../js/notifications.js"></script><script src="../js/app.js"></script>
+  <script>
+    const user = Auth.requireAuth(['employer']);
+    if(!user) throw 'r';
+    App.renderSidebar('employer','myjobs');
+
+    function render() {
+      const jobs = DB.getJobsByEmployer(user.id).reverse();
+      if (!jobs.length) { document.getElementById('jobList').innerHTML = '<div class="empty-state"><div class="empty-icon">📄</div><h3>Chưa đăng tin nào</h3><a href="post-job.html" class="btn btn-primary mt-2">Đăng tin ngay</a></div>'; return; }
+      document.getElementById('jobList').innerHTML = `<div class="table-wrapper"><table class="table">
+        <thead><tr><th>Tiêu đề</th><th>Lương</th><th>Địa điểm</th><th>Ứng viên</th><th>Lượt xem</th><th>Ngày đăng</th><th>Thao tác</th></tr></thead>
+        <tbody>${jobs.map(j => {
+          const appCount = DB.getApplicationsByJob(j.id).length;
+          return `<tr>
+            <td><strong>${j.title}</strong><br><span class="badge badge-neutral" style="margin-top:4px">${j.type}</span></td>
+            <td>${j.salary}</td>
+            <td>${j.location}</td>
+            <td><a href="job-applicants.html?id=${j.id}" class="badge badge-info" style="cursor:pointer">${appCount} CV</a></td>
+            <td>👁 ${j.views||0}</td>
+            <td>${App.formatDate(j.createdAt)}</td>
+            <td><div class="flex" style="gap:6px">
+              <a href="edit-job.html?id=${j.id}" class="btn btn-sm btn-secondary">✏️</a>
+              <a href="job-applicants.html?id=${j.id}" class="btn btn-sm btn-primary">👥</a>
+              <button class="btn btn-sm btn-danger" onclick="deleteJob('${j.id}')">🗑️</button>
+            </div></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>`;
+    }
+    function deleteJob(id) {
+      if (!confirm('Bạn có chắc muốn xóa tin này?')) return;
+      DB.deleteJob(id);
+      Toast.success('Đã xóa tin tuyển dụng');
+      render();
+    }
+    render();
+  </script>
+</body></html>

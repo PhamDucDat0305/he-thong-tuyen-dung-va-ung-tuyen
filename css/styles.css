@@ -132,6 +132,26 @@ a {
   color: white;
 }
 
+.btn-secondary {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.btn-secondary:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.btn-danger {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.btn-danger:hover {
+  background: #fca5a5;
+  color: #991b1b;
+}
+
 /* ========== NAVBAR ========== */
 .navbar {
   height: 70px;
@@ -205,6 +225,11 @@ a {
 .badge-neutral {
   background: var(--border);
   color: var(--text-light);
+}
+
+.badge-info {
+  background: #e0f2fe;
+  color: #0284c7;
 }
 
 /* ========== BUTTON SIZES & VARIANTS ========== */
