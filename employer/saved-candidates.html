@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Ứng viên đã lưu — JobViệt</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/pages/dashboard.css">
+</head>
+<body>
+  <div class="layout-sidebar">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="content-area">
+      <div class="content-header">
+        <h1>📌 Ứng viên đã lưu</h1>
+        <p>Những hồ sơ tiềm năng bạn đã đánh dấu để xem xét sau</p>
+      </div>
+
+      <div class="grid grid-3 stagger" id="savedCandidates">
+        <!-- Rendered by JS -->
+      </div>
+    </main>
+  </div>
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+    const user = Auth.requireAuth(['employer']);
+    if (!user) throw 'redirect';
+    App.renderSidebar('employer', 'saved_candidates');
+
+    // Giả lập dữ liệu ứng viên đã lưu
+    const savedList = [
+      { id: 1, name: "Nguyễn Văn An", title: "Senior Frontend Developer", exp: "5 năm", savedAt: "2026-05-08T10:00:00Z" },
+      { id: 2, name: "Vũ Hải Yến", title: "Product Manager", exp: "4 năm", savedAt: "2026-05-09T08:30:00Z" }
+    ];
+
+    function removeSaved(id) {
+      if(!confirm("Bỏ lưu ứng viên này?")) return;
+      Toast.success("Đã xóa khỏi danh sách lưu");
+      document.getElementById('card-'+id).remove();
+      if(document.getElementById('savedCandidates').children.length === 0) {
+        document.getElementById('savedCandidates').innerHTML = '<div class="empty-state" style="grid-column: 1 / -1"><div class="empty-icon">📌</div><p>Chưa có hồ sơ nào được lưu</p></div>';
+      }
+    }
+
+    if (!savedList.length) {
+      document.getElementById('savedCandidates').innerHTML = '<div class="empty-state" style="grid-column: 1 / -1"><div class="empty-icon">📌</div><p>Chưa có hồ sơ nào được lưu</p></div>';
+    } else {
+      document.getElementById('savedCandidates').innerHTML = savedList.map(c => `
+        <div class="card animate-fade-up" id="card-${c.id}">
+          <div class="flex" style="gap:16px; margin-bottom:16px">
+            <div class="avatar" style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg, #10B981, #047857);display:flex;align-items:center;justify-content:center;font-weight:bold;color:white;font-size:1.2rem">${c.name[0]}</div>
+            <div>
+              <h3 style="margin-bottom:4px">${c.name}</h3>
+              <p style="color:var(--text-light);font-size:0.9rem">${c.title}</p>
+            </div>
+          </div>
+          <div style="font-size:0.85rem; color:var(--text-light); margin-bottom:20px">
+            Đã lưu: ${App.formatDate(c.savedAt)}<br>
+            Kinh nghiệm: ${c.exp}
+          </div>
+          <div class="flex-between">
+            <button class="btn btn-sm btn-danger" onclick="removeSaved(${c.id})">Bỏ lưu</button>
+            <button class="btn btn-sm btn-primary">Xem hồ sơ</button>
+          </div>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>

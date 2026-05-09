@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Hiệu quả tuyển dụng — JobViệt</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/pages/dashboard.css">
+</head>
+<body>
+  <div class="layout-sidebar">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="content-area">
+      <div class="content-header">
+        <h1>📊 Hiệu quả tuyển dụng</h1>
+        <p>Đánh giá phễu tuyển dụng và chất lượng ứng viên</p>
+      </div>
+
+      <div class="grid grid-3 stagger" id="funnelStats">
+        <div class="stat-card">
+          <div class="stat-icon blue">📩</div>
+          <div class="stat-value" id="s_applied">0</div>
+          <div class="stat-label">Hồ sơ tiếp nhận</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">📅</div>
+          <div class="stat-value" id="s_interview">0</div>
+          <div class="stat-label">Phỏng vấn</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div class="stat-value" id="s_hired">0</div>
+          <div class="stat-label">Trúng tuyển</div>
+        </div>
+      </div>
+
+      <div class="card mt-3 animate-fade-up" style="animation-delay:0.4s">
+        <h3 class="mb-2">Chi phí và Thời gian</h3>
+        <div class="grid grid-2">
+          <div style="padding:20px; background:var(--bg); border-radius:var(--radius)">
+            <h4 style="margin-bottom:10px; color:var(--text-light)">⏱️ Thời gian tuyển dụng trung bình</h4>
+            <div style="font-size:2rem; font-weight:800; color:var(--primary)">14.5 ngày</div>
+            <p style="font-size:0.85rem; color:var(--text-light); margin-top:5px">Nhanh hơn 12% so với tháng trước</p>
+          </div>
+          <div style="padding:20px; background:var(--bg); border-radius:var(--radius)">
+            <h4 style="margin-bottom:10px; color:var(--text-light)">💰 Chi phí trên một CV</h4>
+            <div style="font-size:2rem; font-weight:800; color:var(--primary)">25,000đ</div>
+            <p style="font-size:0.85rem; color:var(--text-light); margin-top:5px">Ổn định</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+    const user = Auth.requireAuth(['employer']);
+    if (!user) throw 'redirect';
+    App.renderSidebar('employer', 'stats_performance');
+
+    const myJobs = DB.getJobsByEmployer(user.id);
+    const allApps = myJobs.flatMap(j => DB.getApplicationsByJob(j.id));
+    
+    document.getElementById('s_applied').textContent = allApps.length;
+    // Giả lập tỉ lệ rớt phễu
+    document.getElementById('s_interview').textContent = Math.floor(allApps.length * 0.4); 
+    document.getElementById('s_hired').textContent = allApps.filter(a => a.status === 'accepted').length;
+  </script>
+</body>
+</html>

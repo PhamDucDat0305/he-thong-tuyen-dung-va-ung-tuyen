@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Tìm kiếm ứng viên — JobViệt</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/pages/dashboard.css">
+</head>
+<body>
+  <div class="layout-sidebar">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="content-area">
+      <div class="content-header flex-between">
+        <div>
+          <h1>👥 Tìm kiếm ứng viên</h1>
+          <p>Tìm kiếm và mời ứng viên tiềm năng ứng tuyển</p>
+        </div>
+        <div class="flex" style="gap: 12px">
+          <input type="text" class="form-input" placeholder="Tìm theo kỹ năng, vị trí..." style="width: 300px">
+          <button class="btn btn-primary">Tìm kiếm</button>
+        </div>
+      </div>
+
+      <div class="grid grid-3 stagger" id="candidateList">
+        <!-- Rendered by JS -->
+      </div>
+    </main>
+  </div>
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+    const user = Auth.requireAuth(['employer']);
+    if (!user) throw 'redirect';
+    App.renderSidebar('employer', 'applicants');
+
+    const sampleCandidates = [
+      { name: "Nguyễn Văn An", title: "Senior Frontend Developer", exp: "5 năm", skills: ["React", "Vue", "TypeScript"], loc: "Hà Nội" },
+      { name: "Trần Thị Bích", title: "UI/UX Designer", exp: "3 năm", skills: ["Figma", "Adobe XD", "Prototyping"], loc: "TP.HCM" },
+      { name: "Lê Hoàng Nam", title: "Backend Developer", exp: "4 năm", skills: ["Node.js", "Python", "MongoDB"], loc: "Đà Nẵng" },
+      { name: "Phạm Minh Tâm", title: "Marketing Manager", exp: "6 năm", skills: ["SEO", "Content Strategy", "Ads"], loc: "Hà Nội" },
+      { name: "Hoàng Tuấn Kiệt", title: "DevOps Engineer", exp: "2 năm", skills: ["Docker", "Kubernetes", "AWS"], loc: "Từ xa" },
+      { name: "Vũ Hải Yến", title: "Product Manager", exp: "4 năm", skills: ["Agile", "Scrum", "Data Analysis"], loc: "TP.HCM" }
+    ];
+
+    document.getElementById('candidateList').innerHTML = sampleCandidates.map(c => `
+      <div class="card animate-fade-up flex" style="flex-direction:column; align-items:flex-start; gap:16px;">
+        <div class="flex" style="gap:16px; width:100%">
+          <div class="avatar" style="width:50px;height:50px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-weight:bold;color:white;font-size:1.2rem">${c.name[0]}</div>
+          <div>
+            <h3 style="margin-bottom:4px">${c.name}</h3>
+            <p style="color:var(--text-light);font-size:0.9rem">${c.title}</p>
+          </div>
+        </div>
+        <div style="font-size:0.85rem; color:var(--text-light)">
+          <div style="margin-bottom:6px">📍 ${c.loc} &nbsp;·&nbsp; 💼 ${c.exp} kinh nghiệm</div>
+          <div class="flex" style="gap:6px; flex-wrap:wrap; margin-top:10px">
+            ${c.skills.map(s => `<span class="badge badge-neutral">${s}</span>`).join('')}
+          </div>
+        </div>
+        <div class="flex-between" style="width:100%; margin-top:auto; border-top:1px solid var(--border-light); padding-top:16px">
+          <button class="btn btn-sm btn-outline" onclick="Toast.success('Đã lưu ứng viên')">❤️ Lưu</button>
+          <button class="btn btn-sm btn-primary" onclick="Toast.success('Đã gửi lời mời ứng tuyển')">Gửi lời mời</button>
+        </div>
+      </div>
+    `).join('');
+  </script>
+</body>
+</html>

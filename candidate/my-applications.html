@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Việc làm đã ứng tuyển — JobViệt</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/pages/dashboard.css">
+</head>
+<body>
+  <div class="layout-sidebar">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="content-area">
+      <div class="content-header">
+        <h1>📩 Việc làm đã ứng tuyển</h1>
+        <p>Theo dõi trạng thái các hồ sơ bạn đã nộp</p>
+      </div>
+
+      <div class="table-wrapper animate-fade-up">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Công việc</th>
+              <th>Công ty</th>
+              <th>Ngày nộp</th>
+              <th>Trạng thái</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="appliedJobsList">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+    const user = Auth.requireAuth(['candidate']);
+    if (!user) throw 'redirect';
+    App.renderSidebar('candidate', 'my_apps');
+
+    const apps = DB.getApplicationsByCandidate(user.id).sort((a,b) => new Date(b.appliedAt)-new Date(a.appliedAt));
+    
+    if (!apps.length) {
+      document.getElementById('appliedJobsList').innerHTML = '<tr><td colspan="5" class="text-center" style="padding:40px"><div class="empty-state" style="border:none"><div class="empty-icon">📭</div><p>Bạn chưa ứng tuyển việc làm nào</p></div></td></tr>';
+    } else {
+      const statusMap = { pending: ['⏳ Đang chờ', 'badge-warning'], accepted: ['✅ Chấp nhận', 'badge-success'], rejected: ['❌ Từ chối', 'badge-danger'] };
+      document.getElementById('appliedJobsList').innerHTML = apps.map(a => {
+        const job = DB.getJobById(a.jobId);
+        const [label, cls] = statusMap[a.status] || statusMap.pending;
+        return `
+          <tr>
+            <td><strong>${job ? job.title : 'Tin đã gỡ'}</strong></td>
+            <td>${job ? job.companyName : '-'}</td>
+            <td>${App.formatDate(a.appliedAt)}</td>
+            <td><span class="badge ${cls}">${label}</span></td>
+            <td>${job ? `<a href="../job-detail.html?id=${job.id}" class="btn btn-sm btn-light">Xem lại tin</a>` : ''}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+  </script>
+</body>
+</html>

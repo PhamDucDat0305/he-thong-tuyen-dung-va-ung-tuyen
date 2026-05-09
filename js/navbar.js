@@ -41,34 +41,37 @@
     /* ── Candidate (Ứng viên) ─────────────────────────────── */
     candidate: [
       {
+        label: "Tổng quan",
+        items: [
+          { icon: "fa-chart-pie", text: "Dashboard", href: resolveHref("candidate/dashboard.html") },
+        ],
+      },
+      {
         label: "Quản lý tìm việc",
         items: [
-          { icon: "fa-bookmark", text: "Việc làm đã lưu", href: "#" },
-          { icon: "fa-paper-plane", text: "Việc làm đã ứng tuyển", href: "#" },
+          { icon: "fa-bookmark", text: "Việc làm đã lưu", href: resolveHref("candidate/saved-jobs.html") },
+          { icon: "fa-paper-plane", text: "Việc làm đã ứng tuyển", href: resolveHref("candidate/my-applications.html") },
         ],
       },
       {
         label: "Quản lý CV & Cover letter",
         items: [
-          { icon: "fa-file-lines", text: "CV của tôi", href: "#" },
-          {
-            icon: "fa-envelope-open-text",
-            text: "Cover Letter của tôi",
-            href: "#",
-          },
-          {
-            icon: "fa-handshake",
-            text: "Nhà tuyển dụng muốn kết nối",
-            href: "#",
-          },
-          { icon: "fa-eye", text: "Nhà tuyển dụng xem hồ sơ", href: "#" },
+          { icon: "fa-file-lines", text: "CV của tôi", href: resolveHref("candidate/my-cv.html") },
+          { icon: "fa-envelope-open-text", text: "Cover Letter của tôi", href: resolveHref("candidate/cover-letter.html") },
+        ],
+      },
+      {
+        label: "Tương tác với nhà tuyển dụng",
+        items: [
+          { icon: "fa-handshake", text: "Nhà tuyển dụng muốn kết nối", href: resolveHref("candidate/employer-invites.html") },
+          { icon: "fa-eye", text: "Nhà tuyển dụng xem hồ sơ", href: resolveHref("candidate/profile-views.html") },
         ],
       },
       {
         label: "Cá nhân & Bảo mật",
         items: [
-          { icon: "fa-user-pen", text: "Cài đặt thông tin cá nhân", href: "#" },
-          { icon: "fa-shield-halved", text: "Cài đặt bảo mật", href: "#" },
+          { icon: "fa-user-pen", text: "Thông tin cá nhân", href: resolveHref("candidate/account.html") },
+          { icon: "fa-shield-halved", text: "Cài đặt bảo mật", href: resolveHref("candidate/security.html") },
         ],
       },
     ],

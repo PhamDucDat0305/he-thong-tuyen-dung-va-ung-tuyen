@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Ứng viên — JobViệt</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/pages/dashboard.css">
+</head>
+<body>
+  <div class="layout-sidebar">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="content-area">
+      <div class="container" style="max-width: 100%">
+        <div class="content-header">
+          <h1 id="greeting"></h1>
+          <p>Tổng quan hoạt động của bạn</p>
+        </div>
+        <div class="grid grid-4 stagger" id="stats"></div>
+        <div class="grid grid-2 mt-3">
+          <div>
+            <h3 class="mb-2">📩 Việc đã ứng tuyển gần đây</h3>
+            <div id="recentApps"></div>
+            <a href="my-applications.html" class="btn btn-ghost mt-2">Xem tất cả →</a>
+          </div>
+          <div>
+            <h3 class="mb-2">❤️ Việc đã lưu</h3>
+            <div id="savedList"></div>
+            <a href="saved-jobs.html" class="btn btn-ghost mt-2">Xem tất cả →</a>
+          </div>
+        </div>
+        <div class="mt-3">
+          <div class="flex-between mb-2"><h3>💼 Gợi ý việc làm</h3><a href="../public/job-list.html" class="btn btn-ghost">Xem tất cả →</a></div>
+          <div class="grid grid-2 stagger" id="suggested"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+    const user = Auth.requireAuth(['candidate']);
+    if (!user) throw 'redirect';
+    App.renderSidebar('candidate', 'dashboard');
+
+    document.getElementById('greeting').textContent = `👋 Xin chào, ${user.fullName}!`;
+
+    const apps = DB.getApplicationsByCandidate(user.id);
+    const saved = DB.getSavedJobs(user.id);
+
+    // Stats
+    document.getElementById('stats').innerHTML = `
+      <div class="stat-card animate-fade-up"><div class="stat-icon blue">📩</div><div class="stat-value">${apps.length}</div><div class="stat-label">Đã ứng tuyển</div></div>
+      <div class="stat-card animate-fade-up"><div class="stat-icon green">✅</div><div class="stat-value">${apps.filter(a=>a.status==='accepted').length}</div><div class="stat-label">Được chấp nhận</div></div>
+      <div class="stat-card animate-fade-up"><div class="stat-icon orange">⏳</div><div class="stat-value">${apps.filter(a=>a.status==='pending').length}</div><div class="stat-label">Đang chờ</div></div>
+      <div class="stat-card animate-fade-up"><div class="stat-icon red">❤️</div><div class="stat-value">${saved.length}</div><div class="stat-label">Đã lưu</div></div>
+    `;
+
+    // Recent applications
+    const recentApps = apps.slice(-3).reverse();
+    document.getElementById('recentApps').innerHTML = recentApps.length ? recentApps.map(a => {
+      const job = DB.getJobById(a.jobId);
+      const statusMap = { pending: ['⏳ Đang chờ', 'badge-warning'], accepted: ['✅ Chấp nhận', 'badge-success'], rejected: ['❌ Từ chối', 'badge-danger'] };
+      const [label, cls] = statusMap[a.status] || statusMap.pending;
+      return `<div class="card mb-1" style="padding:16px"><div class="flex-between"><div><strong>${job ? job.title : 'N/A'}</strong><br><span style="font-size:.82rem;color:var(--text-light)">${job ? job.companyName : ''} · ${App.timeAgo(a.appliedAt)}</span></div><span class="badge ${cls}">${label}</span></div></div>`;
+    }).join('') : '<div class="empty-state" style="padding:30px"><div class="empty-icon">📭</div><p>Chưa ứng tuyển việc nào</p></div>';
+
+    // Saved jobs
+    document.getElementById('savedList').innerHTML = saved.length ? saved.slice(-3).reverse().map(s => {
+      const job = DB.getJobById(s.jobId);
+      if (!job) return '';
+      return `<div class="card mb-1" style="padding:16px"><div class="flex-between"><div><strong>${job.title}</strong><br><span style="font-size:.82rem;color:var(--text-light)">${job.companyName} · ${job.salary}</span></div><a href="job-detail.html?id=${job.id}" class="btn btn-sm btn-primary">Xem</a></div></div>`;
+    }).join('') : '<div class="empty-state" style="padding:30px"><div class="empty-icon">💾</div><p>Chưa lưu việc nào</p></div>';
+
+    // Suggested jobs
+    const allJobs = DB.getJobs().filter(j => j.status === 'active').slice(-4);
+    document.getElementById('suggested').innerHTML = allJobs.map(job => `
+      <div class="job-card animate-fade-up">
+        <div class="job-title">${job.title}</div>
+        <div class="job-company">${job.companyName}</div>
+        <div class="job-meta"><span>📍 ${job.location}</span><span>💰 ${job.salary}</span></div>
+        <div class="job-actions"><a href="job-detail.html?id=${job.id}" class="btn btn-sm btn-primary">Xem chi tiết</a></div>
+      </div>
+    `).join('');
+  </script>
+</body>
+</html>

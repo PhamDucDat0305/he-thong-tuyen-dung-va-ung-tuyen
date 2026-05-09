@@ -44,23 +44,44 @@ const App = {
         <a href="my-jobs.html" class="${activePage === "myjobs" ? "active" : ""}"><span class="icon">📋</span> Danh sách tin tuyển dụng</a>
 
         <div class="menu-label">Quản lý ứng viên</div>
-        <a href="#" class="${activePage === "applicants" ? "active" : ""}"><span class="icon">👥</span> Danh sách ứng viên</a>
-        <a href="#" class="${activePage === "applied" ? "active" : ""}"><span class="icon">📥</span> Ứng viên đã ứng tuyển</a>
-        <a href="#" class="${activePage === "saved_candidates" ? "active" : ""}"><span class="icon">📌</span> Ứng viên đã lưu</a>
-        <a href="#" class="${activePage === "interviews" ? "active" : ""}"><span class="icon">📅</span> Lịch phỏng vấn</a>
+        <a href="applicants.html" class="${activePage === "applicants" ? "active" : ""}"><span class="icon">👥</span> Danh sách ứng viên</a>
+        <a href="applied-candidates.html" class="${activePage === "applied" ? "active" : ""}"><span class="icon">📥</span> Ứng viên đã ứng tuyển</a>
+        <a href="saved-candidates.html" class="${activePage === "saved_candidates" ? "active" : ""}"><span class="icon">📌</span> Ứng viên đã lưu</a>
+        <a href="interviews.html" class="${activePage === "interviews" ? "active" : ""}"><span class="icon">📅</span> Lịch phỏng vấn</a>
 
         <div class="menu-label">Quản lý công ty</div>
         <a href="company-profile.html" class="${activePage === "company" ? "active" : ""}"><span class="icon">🏢</span> Hồ sơ công ty</a>
         <a href="edit-company.html" class="${activePage === "edit_company" ? "active" : ""}"><span class="icon">✏️</span> Chỉnh sửa thông tin công ty</a>
 
         <div class="menu-label">Báo cáo & thống kê</div>
-        <a href="#" class="${activePage === "stats_views" ? "active" : ""}"><span class="icon">👁️</span> Lượt xem tin</a>
-        <a href="#" class="${activePage === "stats_performance" ? "active" : ""}"><span class="icon">📊</span> Hiệu quả tuyển dụng</a>
+        <a href="stats-views.html" class="${activePage === "stats_views" ? "active" : ""}"><span class="icon">👁️</span> Lượt xem tin</a>
+        <a href="stats-performance.html" class="${activePage === "stats_performance" ? "active" : ""}"><span class="icon">📊</span> Hiệu quả tuyển dụng</a>
 
         <div class="menu-label">Cá nhân & Bảo mật</div>
-        <a href="#" class="${activePage === "account" ? "active" : ""}"><span class="icon">👤</span> Thông tin tài khoản</a>
-        <a href="#" class="${activePage === "password" ? "active" : ""}"><span class="icon">🔑</span> Đổi mật khẩu</a>
-        <a href="#" class="${activePage === "security" ? "active" : ""}"><span class="icon">🛡️</span> Cài đặt bảo mật</a>
+        <a href="account.html" class="${activePage === "account" ? "active" : ""}"><span class="icon">👤</span> Thông tin tài khoản</a>
+        <a href="password.html" class="${activePage === "password" ? "active" : ""}"><span class="icon">🔑</span> Đổi mật khẩu</a>
+        <a href="security.html" class="${activePage === "security" ? "active" : ""}"><span class="icon">🛡️</span> Cài đặt bảo mật</a>
+      `;
+    } else if (role === "candidate") {
+      menuHTML = `
+        <div class="menu-label">Tổng quan</div>
+        <a href="dashboard.html" class="${activePage === "dashboard" ? "active" : ""}"><span class="icon">📊</span> Dashboard</a>
+
+        <div class="menu-label">Quản lý tìm việc</div>
+        <a href="saved-jobs.html" class="${activePage === "saved_jobs" ? "active" : ""}"><span class="icon">🔖</span> Việc làm đã lưu</a>
+        <a href="my-applications.html" class="${activePage === "my_apps" ? "active" : ""}"><span class="icon">📩</span> Việc làm đã ứng tuyển</a>
+
+        <div class="menu-label">Quản lý CV & Cover Letter</div>
+        <a href="my-cv.html" class="${activePage === "my_cv" ? "active" : ""}"><span class="icon">📄</span> CV của tôi</a>
+        <a href="cover-letter.html" class="${activePage === "cover_letter" ? "active" : ""}"><span class="icon">✉️</span> Cover Letter của tôi</a>
+
+        <div class="menu-label">Tương tác nhà tuyển dụng</div>
+        <a href="employer-invites.html" class="${activePage === "invites" ? "active" : ""}"><span class="icon">🤝</span> Nhà tuyển dụng muốn kết nối</a>
+        <a href="profile-views.html" class="${activePage === "profile_views" ? "active" : ""}"><span class="icon">👁️</span> Nhà tuyển dụng xem hồ sơ</a>
+
+        <div class="menu-label">Cá nhân & Bảo mật</div>
+        <a href="account.html" class="${activePage === "account" ? "active" : ""}"><span class="icon">👤</span> Thông tin cá nhân</a>
+        <a href="security.html" class="${activePage === "security" ? "active" : ""}"><span class="icon">🛡️</span> Cài đặt bảo mật</a>
       `;
     }
 

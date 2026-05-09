@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Lượt xem hồ sơ — JobViệt</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/pages/dashboard.css">
+</head>
+<body>
+  <div class="layout-sidebar">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="content-area">
+      <div class="content-header">
+        <h1>👁️ Nhà tuyển dụng xem hồ sơ</h1>
+        <p>Thống kê số lượng nhà tuyển dụng đã quan tâm và xem CV của bạn</p>
+      </div>
+
+      <div class="grid grid-2 stagger">
+        <div class="stat-card">
+          <div class="stat-icon blue">📈</div>
+          <div class="stat-value">24</div>
+          <div class="stat-label">Lượt xem tuần này</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">⭐</div>
+          <div class="stat-value">5</div>
+          <div class="stat-label">Lưu hồ sơ</div>
+        </div>
+      </div>
+
+      <div class="card mt-3 animate-fade-up" style="animation-delay:0.3s">
+        <h3 class="mb-2">Ai đã xem hồ sơ của bạn?</h3>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Công ty</th>
+                <th>Lĩnh vực</th>
+                <th>Thời gian xem</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>FPT Software</strong></td>
+                <td>CNTT / Phần mềm</td>
+                <td>Vừa xong</td>
+              </tr>
+              <tr>
+                <td><strong>Momo</strong></td>
+                <td>Tài chính / Fintech</td>
+                <td>2 giờ trước</td>
+              </tr>
+              <tr>
+                <td><strong>Shopee Việt Nam</strong></td>
+                <td>Thương mại điện tử</td>
+                <td>Hôm qua</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+    const user = Auth.requireAuth(['candidate']);
+    if (!user) throw 'redirect';
+    App.renderSidebar('candidate', 'profile_views');
+  </script>
+</body>
+</html>
