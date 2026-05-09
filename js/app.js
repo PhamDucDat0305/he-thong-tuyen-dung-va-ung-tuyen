@@ -112,6 +112,7 @@ const App = {
     // Xử lý đường dẫn tương đối
     const isSubfolder = location.pathname.includes('/employer/') || location.pathname.includes('/candidate/');
     const base = isSubfolder ? '../' : '';
+    const user = Auth.getCurrentUser();
 
     footer.innerHTML = `
       <div class="container">
@@ -124,17 +125,17 @@ const App = {
             <h4>Ứng viên</h4>
             <ul>
               <li><a href="${base}job-list.html">Tìm việc làm</a></li>
-              <li><a href="${base}auth.html">Việc đã ứng tuyển</a></li>
-              <li><a href="${base}auth.html">Việc đã lưu</a></li>
-              <li><a href="${base}auth.html">Hồ sơ cá nhân</a></li>
+              <li><a href="#" onclick="App.protectedNav(event, '${base}candidate/my-applications.html', 'candidate')">Việc đã ứng tuyển</a></li>
+              <li><a href="#" onclick="App.protectedNav(event, '${base}candidate/saved-jobs.html', 'candidate')">Việc đã lưu</a></li>
+              <li><a href="#" onclick="App.protectedNav(event, '${base}candidate/account.html', 'candidate')">Hồ sơ cá nhân</a></li>
             </ul>
           </div>
           <div>
-            <h4>Nhà tuyển dụng</h4>
+            <h4><a href="#" onclick="App.protectedNav(event, '${base}employer/dashboard.html', 'employer')" style="color: inherit; text-decoration: none;">Nhà tuyển dụng</a></h4>
             <ul>
-              <li><a href="${base}employer/post-job.html">Đăng tuyển dụng</a></li>
-              <li><a href="${base}employer/my-jobs.html">Quản lý tin</a></li>
-              <li><a href="${base}employer/company-profile.html">Hồ sơ công ty</a></li>
+              <li><a href="#" onclick="App.protectedNav(event, '${base}employer/post-job.html', 'employer')">Đăng tuyển dụng</a></li>
+              <li><a href="#" onclick="App.protectedNav(event, '${base}employer/my-jobs.html', 'employer')">Quản lý tin</a></li>
+              <li><a href="#" onclick="App.protectedNav(event, '${base}employer/company-profile.html', 'employer')">Hồ sơ công ty</a></li>
             </ul>
           </div>
           <div>
@@ -150,6 +151,28 @@ const App = {
         </div>
       </div>
     `;
+  },
+
+  /* === Protected Navigation === */
+  protectedNav(e, url, role) {
+    if (e) e.preventDefault();
+    const user = Auth.getCurrentUser();
+    const isSubfolder = location.pathname.includes('/employer/') || location.pathname.includes('/candidate/');
+    const authPath = isSubfolder ? '../auth.html' : 'auth.html';
+    const indexPath = isSubfolder ? '../index.html' : 'index.html';
+
+    if (!user) {
+      window.location.href = authPath;
+      return;
+    }
+
+    if (role && user.role !== role) {
+      alert(user.role === 'candidate' ? 'Trang này dành cho Nhà tuyển dụng!' : 'Trang này dành cho Ứng viên!');
+      window.location.href = indexPath;
+      return;
+    }
+
+    window.location.href = url;
   },
 
   /* === Pagination === */

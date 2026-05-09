@@ -87,15 +87,28 @@ const Auth = {
 
   requireAuth(allowedRoles) {
     const user = this.getCurrentUser();
+    const isSubfolder = location.pathname.includes('/employer/') || location.pathname.includes('/candidate/');
+    const authPath = isSubfolder ? '../auth.html' : 'auth.html';
+    const indexPath = isSubfolder ? '../index.html' : 'index.html';
+
+    // Anti-flicker: Hide body immediately if not logged in or wrong role
+    if (!user || (allowedRoles && !allowedRoles.includes(user.role))) {
+      document.documentElement.style.display = 'none';
+    }
+
     if (!user) {
-      window.location.href = location.pathname.includes('/employer/') || location.pathname.includes('/candidate/') ? '../auth.html' : 'auth.html';
+      window.location.href = authPath;
       return null;
     }
+
     if (allowedRoles && !allowedRoles.includes(user.role)) {
       alert("Bạn không có quyền truy cập trang này!");
-      window.location.href = location.pathname.includes('/employer/') || location.pathname.includes('/candidate/') ? '../index.html' : 'index.html';
+      window.location.href = indexPath;
       return null;
     }
+
+    // If everything is fine, make sure body is visible (in case it was hidden)
+    document.documentElement.style.display = '';
     return user;
   },
 };
