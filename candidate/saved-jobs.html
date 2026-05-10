@@ -1,46 +1,55 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Việc làm đã lưu — JobViệt</title>
-  <link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/navbar.css">
-  <link rel="stylesheet" href="../css/pages/dashboard.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-</head>
-<body><div id="navbar-placeholder"></div>
-  <div class="layout-sidebar">
-    <aside class="sidebar" id="sidebar"></aside>
-    <main class="content-area">
-      <div class="content-header">
-        <h1><i class="fa-solid fa-bookmark"></i> Việc làm đã lưu</h1>
-        <p>Danh sách các công việc bạn quan tâm và muốn ứng tuyển sau</p>
-      </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Việc làm đã lưu — JobViệt</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/pages/dashboard.css" />
+    <link rel="stylesheet" href="../css/pages/candidate.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="navbar-placeholder"></div>
+    <div class="layout-sidebar">
+      <aside class="sidebar" id="sidebar"></aside>
+      <main class="content-area">
+        <div class="content-header">
+          <h1><i class="fa-solid fa-bookmark"></i> Việc làm đã lưu</h1>
+          <p>Danh sách các công việc bạn quan tâm và muốn ứng tuyển sau</p>
+        </div>
 
-      <div class="grid grid-3 stagger" id="savedJobsList">
-        <!-- Rendered by JS -->
-      </div>
-    </main>
-  </div>
-  <script src="../js/db.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/notifications.js"></script>
-  <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
-  <script>
-    const user = Auth.requireAuth(['candidate']);
-    if (!user) throw 'redirect';
-    App.renderSidebar('candidate', 'saved_jobs');
+        <div class="grid grid-3 stagger" id="savedJobsList">
+          <!-- Rendered by JS -->
+        </div>
+      </main>
+    </div>
+    <script src="../js/db.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+      const user = Auth.requireAuth(["candidate"]);
+      if (!user) throw "redirect";
+      App.renderSidebar("candidate", "saved_jobs");
 
-    function renderSaved() {
-      const saved = DB.getSavedJobs(user.id);
-      if (!saved.length) {
-        document.getElementById('savedJobsList').innerHTML = '<div class="empty-state" style="grid-column: 1 / -1"><div class="empty-icon"><i class="fa-solid fa-bookmark"></i></div><p>Bạn chưa lưu việc làm nào</p></div>';
-        return;
-      }
-      document.getElementById('savedJobsList').innerHTML = saved.map(s => {
-        const job = DB.getJobById(s.jobId);
-        if(!job) return '';
-        return `
+      function renderSaved() {
+        const saved = DB.getSavedJobs(user.id);
+        if (!saved.length) {
+          document.getElementById("savedJobsList").innerHTML =
+            '<div class="empty-state" style="grid-column: 1 / -1"><div class="empty-icon"><i class="fa-solid fa-bookmark"></i></div><p>Bạn chưa lưu việc làm nào</p></div>';
+          return;
+        }
+        document.getElementById("savedJobsList").innerHTML = saved
+          .map((s) => {
+            const job = DB.getJobById(s.jobId);
+            if (!job) return "";
+            return `
           <div class="card animate-fade-up">
             <h3 class="mb-2" style="font-size:1.1rem">${job.title}</h3>
             <p style="color:var(--text-light);font-size:0.9rem;margin-bottom:12px"><i class="fa-solid fa-building"></i> ${job.companyName}</p>
@@ -49,15 +58,22 @@
               <div><i class="fa-solid fa-money-bill-wave"></i> ${job.salary}</div>
             </div>
             <div class="flex-between" style="border-top:1px solid var(--border-light); padding-top:12px">
-              <button class="btn btn-sm btn-outline" onclick="DB.toggleSaveJob(${job.id}, ${user.id}); renderSaved(); Toast.success('Đã bỏ lưu')">Bỏ lưu</button>
+              <button class="btn btn-sm btn-outline" onclick="toggleSave('${job.id}')">Bỏ lưu</button>
               <a href="../job-detail.html?id=${job.id}" class="btn btn-sm btn-primary">Ứng tuyển</a>
             </div>
           </div>
         `;
-      }).join('');
-    }
-    renderSaved();
-  </script>
-</body>
-</html>
+          })
+          .join("");
+      }
 
+      function toggleSave(jobId) {
+        DB.toggleSaveJob(user.id, jobId);
+        renderSaved();
+        Toast.info("Đã bỏ lưu việc làm");
+      }
+
+      renderSaved();
+    </script>
+  </body>
+</html>

@@ -8,7 +8,10 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
     <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="css/pages/auth.css" />
   </head>
@@ -194,7 +197,7 @@
     </div>
 
     <script src="js/db.js"></script>
-<script src="js/auth.js"></script>
+    <script src="js/auth.js"></script>
     <script>
       /* ===== Chuyển tab ===== */
       const container = document.getElementById("container");
@@ -262,8 +265,6 @@
         }, 3000);
       }
 
-      
-
       /* ===== Đăng ký ===== */
       function handleRegister(event) {
         event.preventDefault();
@@ -277,7 +278,8 @@
         const result = Auth.register(username, password, fullName, email, role);
         if (!result.success) {
           showToast(result.message, "error");
-          if (result.message.includes("tồn tại")) document.getElementById("username_reg").focus();
+          if (result.message.includes("tồn tại"))
+            document.getElementById("username_reg").focus();
           return;
         }
 
@@ -298,10 +300,11 @@
         const result = Auth.login(username, password);
         if (!result.success) {
           showToast(result.message, "error");
-          if (result.message.includes("Mật khẩu")) document.getElementById("password").value = "";
+          if (result.message.includes("Mật khẩu"))
+            document.getElementById("password").value = "";
           return;
         }
-        
+
         window.location.href = "index.html";
       }
     </script>

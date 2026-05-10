@@ -4,15 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>Sửa tin — JobViệt</title>
-    <link rel="stylesheet" href="../css/styles.css" /><link rel="stylesheet" href="../css/navbar.css">
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
     <link rel="stylesheet" href="../css/pages/dashboard.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-</head>
-  <body><div id="navbar-placeholder"></div>
+    <link rel="stylesheet" href="../css/pages/employer.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="navbar-placeholder"></div>
     <div class="layout-sidebar">
       <aside class="sidebar" id="sidebar"></aside>
       <main class="content-area">
-        <div class="content-header"><h1><i class="fa-solid fa-pen-to-square"></i> Sửa tin tuyển dụng</h1></div>
+        <div class="content-header">
+          <h1><i class="fa-solid fa-pen-to-square"></i> Sửa tin tuyển dụng</h1>
+        </div>
         <div
           class="card"
           style="padding: 32px; max-width: 800px"
@@ -23,7 +31,8 @@
     <script src="../js/db.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/notifications.js"></script>
-    <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/navbar.js"></script>
     <script>
       const user = Auth.requireAuth(["employer"]);
       if (!user) throw "r";
@@ -71,5 +80,3 @@
     </script>
   </body>
 </html>
-
-

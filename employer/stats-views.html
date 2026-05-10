@@ -1,82 +1,89 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Lượt xem tin — JobViệt</title>
-  <link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/navbar.css">
-  <link rel="stylesheet" href="../css/pages/dashboard.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-</head>
-<body><div id="navbar-placeholder"></div>
-  <div class="layout-sidebar">
-    <aside class="sidebar" id="sidebar"></aside>
-    <main class="content-area">
-      <div class="content-header">
-        <h1><i class="fa-solid fa-eye"></i> Lượt xem tin</h1>
-        <p>Thống kê lượng truy cập vào các tin tuyển dụng của bạn</p>
-      </div>
-
-      <div class="grid grid-4 stagger" id="overviewStats">
-        <!-- Rendered by JS -->
-      </div>
-
-      <div class="card mt-3 animate-fade-up" style="animation-delay: 0.5s">
-        <h3 class="mb-2">Chi tiết theo từng tin tuyển dụng</h3>
-        <div class="table-wrapper">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Tin tuyển dụng</th>
-                <th>Lượt xem</th>
-                <th>Lượt ứng tuyển</th>
-                <th>Tỉ lệ chuyển đổi</th>
-              </tr>
-            </thead>
-            <tbody id="viewList">
-              <!-- Rendered by JS -->
-            </tbody>
-          </table>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Lượt xem tin — JobViệt</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/pages/dashboard.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="navbar-placeholder"></div>
+    <div class="layout-sidebar">
+      <aside class="sidebar" id="sidebar"></aside>
+      <main class="content-area">
+        <div class="content-header">
+          <h1><i class="fa-solid fa-eye"></i> Lượt xem tin</h1>
+          <p>Thống kê lượng truy cập vào các tin tuyển dụng của bạn</p>
         </div>
-      </div>
-    </main>
-  </div>
-  <script src="../js/db.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/notifications.js"></script>
-  <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
-  <script>
-    const user = Auth.requireAuth(['employer']);
-    if (!user) throw 'redirect';
-    App.renderSidebar('employer', 'stats_views');
 
-    const myJobs = DB.getJobsByEmployer(user.id);
-    let totalViews = 0;
-    let totalApps = 0;
-    
-    const rows = myJobs.map(j => {
-      const v = j.views || Math.floor(Math.random() * 500) + 10; // Giả lập views nếu chưa có
-      const apps = DB.getApplicationsByJob(j.id).length;
-      totalViews += v;
-      totalApps += apps;
-      const rate = v > 0 ? ((apps/v)*100).toFixed(1) : 0;
-      return `<tr>
+        <div class="grid grid-4 stagger" id="overviewStats">
+          <!-- Rendered by JS -->
+        </div>
+
+        <div class="card mt-3 animate-fade-up" style="animation-delay: 0.5s">
+          <h3 class="mb-2">Chi tiết theo từng tin tuyển dụng</h3>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Tin tuyển dụng</th>
+                  <th>Lượt xem</th>
+                  <th>Lượt ứng tuyển</th>
+                  <th>Tỉ lệ chuyển đổi</th>
+                </tr>
+              </thead>
+              <tbody id="viewList">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="../js/db.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+      const user = Auth.requireAuth(["employer"]);
+      if (!user) throw "redirect";
+      App.renderSidebar("employer", "stats_views");
+
+      const myJobs = DB.getJobsByEmployer(user.id);
+      let totalViews = 0;
+      let totalApps = 0;
+
+      const rows = myJobs.map((j) => {
+        const v = j.views || Math.floor(Math.random() * 500) + 10; // Giả lập views nếu chưa có
+        const apps = DB.getApplicationsByJob(j.id).length;
+        totalViews += v;
+        totalApps += apps;
+        const rate = v > 0 ? ((apps / v) * 100).toFixed(1) : 0;
+        return `<tr>
         <td><strong>${j.title}</strong></td>
         <td>${v}</td>
         <td>${apps}</td>
-        <td><span class="badge ${rate > 5 ? 'badge-success' : 'badge-warning'}">${rate}%</span></td>
+        <td><span class="badge ${rate > 5 ? "badge-success" : "badge-warning"}">${rate}%</span></td>
       </tr>`;
-    });
+      });
 
-    document.getElementById('overviewStats').innerHTML = `
+      document.getElementById("overviewStats").innerHTML = `
       <div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-eye"></i></div><div class="stat-value">${totalViews}</div><div class="stat-label">Tổng lượt xem</div></div>
       <div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-file-lines"></i></div><div class="stat-value">${myJobs.length}</div><div class="stat-label">Tin đang mở</div></div>
       <div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-inbox"></i></div><div class="stat-value">${totalApps}</div><div class="stat-label">Tổng CV nhận</div></div>
-      <div class="stat-card"><div class="stat-icon cyan"><i class="fa-solid fa-chart-line"></i></div><div class="stat-value">${totalViews ? ((totalApps/totalViews)*100).toFixed(1) : 0}%</div><div class="stat-label">Tỉ lệ chuyển đổi</div></div>
+      <div class="stat-card"><div class="stat-icon cyan"><i class="fa-solid fa-chart-line"></i></div><div class="stat-value">${totalViews ? ((totalApps / totalViews) * 100).toFixed(1) : 0}%</div><div class="stat-label">Tỉ lệ chuyển đổi</div></div>
     `;
 
-    document.getElementById('viewList').innerHTML = rows.length ? rows.join('') : '<tr><td colspan="4" class="text-center">Chưa có dữ liệu</td></tr>';
-  </script>
-</body>
+      document.getElementById("viewList").innerHTML = rows.length
+        ? rows.join("")
+        : '<tr><td colspan="4" class="text-center">Chưa có dữ liệu</td></tr>';
+    </script>
+  </body>
 </html>
-

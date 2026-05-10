@@ -4,21 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>Hồ sơ công ty — JobViệt</title>
-    <link rel="stylesheet" href="../css/styles.css" /><link rel="stylesheet" href="../css/navbar.css">
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
     <link rel="stylesheet" href="../css/pages/dashboard.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-</head>
-  <body><div id="navbar-placeholder"></div>
+    <link rel="stylesheet" href="../css/pages/employer.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="navbar-placeholder"></div>
     <div class="layout-sidebar">
       <aside class="sidebar" id="sidebar"></aside>
       <main class="content-area">
         <div class="content-header flex-between">
-          <div><h1><i class="fa-solid fa-building"></i> Hồ sơ công ty</h1></div>
-          <a href="edit-company.html" class="btn btn-primary"><i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa</a>
+          <div>
+            <h1><i class="fa-solid fa-building"></i> Hồ sơ công ty</h1>
+          </div>
+          <a href="edit-company.html" class="btn btn-primary"
+            ><i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa</a
+          >
         </div>
         <div
-          class="card"
-          style="padding: 32px; max-width: 700px"
+          class="card card-employer-form"
           id="companyCard"
         ></div>
       </main>
@@ -26,7 +35,8 @@
     <script src="../js/db.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/notifications.js"></script>
-    <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/navbar.js"></script>
     <script>
       const user = Auth.requireAuth(["employer"]);
       if (!user) throw "r";
@@ -38,19 +48,17 @@
       } else {
         document.getElementById("companyCard").innerHTML = `
         <div class="text-center mb-3">
-          <div style="font-size:4rem">${company.logo || '<i class="fa-solid fa-building"></i>'}</div>
-          <h2 style="margin-top:8px">${company.name}</h2>
+          <div class="company-logo-preview">${company.logo || '<i class="fa-solid fa-building"></i>'}</div>
+          <h2>${company.name}</h2>
           ${company.industry ? `<span class="badge badge-primary mt-1">${company.industry}</span>` : ""}
         </div>
-        <div style="display:grid;gap:16px">
-          <div class="flex-between" style="padding:12px 0;border-bottom:1px solid var(--border-light)"><span style="color:var(--text-light)">Mô tả</span><span style="max-width:400px;text-align:right">${company.description || "Chưa cập nhật"}</span></div>
-          <div class="flex-between" style="padding:12px 0;border-bottom:1px solid var(--border-light)"><span style="color:var(--text-light)">Quy mô</span><strong>${company.size || "Chưa cập nhật"}</strong></div>
-          <div class="flex-between" style="padding:12px 0;border-bottom:1px solid var(--border-light)"><span style="color:var(--text-light)">Địa điểm</span><strong>${company.location || "Chưa cập nhật"}</strong></div>
-          <div class="flex-between" style="padding:12px 0"><span style="color:var(--text-light)">Website</span><strong>${company.website || "Chưa cập nhật"}</strong></div>
+        <div class="grid" style="gap:16px">
+          <div class="dashboard-list-item flex-between"><span class="item-subtitle">Mô tả</span><span style="max-width:400px;text-align:right">${company.description || "Chưa cập nhật"}</span></div>
+          <div class="dashboard-list-item flex-between"><span class="item-subtitle">Quy mô</span><strong>${company.size || "Chưa cập nhật"}</strong></div>
+          <div class="dashboard-list-item flex-between"><span class="item-subtitle">Địa điểm</span><strong>${company.location || "Chưa cập nhật"}</strong></div>
+          <div class="dashboard-list-item flex-between"><span class="item-subtitle">Website</span><strong>${company.website || "Chưa cập nhật"}</strong></div>
         </div>`;
       }
     </script>
   </body>
 </html>
-
-

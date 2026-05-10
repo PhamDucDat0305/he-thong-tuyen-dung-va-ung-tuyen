@@ -146,7 +146,9 @@ const DB = {
       this.getApplications().filter((a) => a.id !== id),
     );
     // Also delete interview if any
-    const interviews = this._get("interviews").filter(i => i.applicationId !== id);
+    const interviews = this._get("interviews").filter(
+      (i) => i.applicationId !== id,
+    );
     this._set("interviews", interviews);
   },
 
@@ -155,7 +157,7 @@ const DB = {
     return this._get("interviews");
   },
   getInterviewByApplication(appId) {
-    return this.getInterviews().find(i => i.applicationId === appId);
+    return this.getInterviews().find((i) => i.applicationId === appId);
   },
   scheduleInterview(appId, data) {
     const interviews = this.getInterviews();
@@ -163,11 +165,11 @@ const DB = {
       id: this._id(),
       applicationId: appId,
       ...data,
-      createdAt: this._now()
+      createdAt: this._now(),
     };
     interviews.push(interview);
     this._set("interviews", interviews);
-    
+
     // Update application status
     this.updateApplication(appId, { status: "interview_scheduled" });
     return interview;
@@ -222,9 +224,67 @@ const DB = {
     return companies[idx];
   },
 
+  /* === MESSAGES === */
+  getMessages(userId, contactId) {
+    return this._get("messages").filter(
+      (m) =>
+        (m.senderId === userId && m.receiverId === contactId) ||
+        (m.senderId === contactId && m.receiverId === userId),
+    );
+  },
+  sendMessage(senderId, receiverId, content) {
+    const messages = this._get("messages");
+    const msg = {
+      id: this._id(),
+      senderId,
+      receiverId,
+      content,
+      timestamp: this._now(),
+      read: false,
+    };
+    messages.push(msg);
+    this._set("messages", messages);
+    return msg;
+  },
+  getConversations(userId) {
+    const messages = this._get("messages");
+    const contacts = new Set();
+    messages.forEach((m) => {
+      if (m.senderId === userId) contacts.add(m.receiverId);
+      if (m.receiverId === userId) contacts.add(m.senderId);
+    });
+
+    return Array.from(contacts).map((cId) => {
+      const contact = this.getUserById(cId);
+      const lastMsg = messages
+        .filter(
+          (m) =>
+            (m.senderId === userId && m.receiverId === cId) ||
+            (m.senderId === cId && m.receiverId === userId),
+        )
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+
+      return {
+        contact,
+        lastMessage: lastMsg,
+        unreadCount: messages.filter(
+          (m) => m.senderId === cId && m.receiverId === userId && !m.read,
+        ).length,
+      };
+    });
+  },
+  markAsRead(userId, contactId) {
+    const messages = this._get("messages").map((m) =>
+      m.senderId === contactId && m.receiverId === userId
+        ? { ...m, read: true }
+        : m,
+    );
+    this._set("messages", messages);
+  },
+
   /* === SEED DATA === */
   seed() {
-    if (localStorage.getItem("db_seeded")) return;
+    if (localStorage.getItem("db_seeded_clean")) return;
 
     // Users
     const admin = {
@@ -322,222 +382,13 @@ const DB = {
       },
     ]);
 
-    // Jobs
-    const jobs = [
-      {
-        id: "job01",
-        title: "Lập Trình Viên Frontend (React)",
-        companyName: "FPT Software",
-        salary: "20-35 triệu",
-        location: "Hà Nội",
-        type: "full-time",
-        experience: "1-3 năm",
-        category: "Công nghệ",
-        description:
-          "Phát triển giao diện web sử dụng React.js, TypeScript. Làm việc với đội ngũ Agile để xây dựng các sản phẩm chuyển đổi số.",
-        requirements:
-          "Thành thạo React.js, HTML/CSS/JS\nHiểu biết về RESTful API\nKinh nghiệm Git, CI/CD\nTiếng Anh giao tiếp",
-        benefits:
-          "Lương tháng 13-14\nBảo hiểm sức khỏe\nĐào tạo nâng cao\nLàm việc hybrid",
-        createdBy: "emp01",
-        createdAt: "2026-03-20T08:00:00Z",
-        status: "active",
-        views: 156,
-      },
-      {
-        id: "job02",
-        title: "Kỹ Sư Backend (Java Spring Boot)",
-        companyName: "FPT Software",
-        salary: "25-40 triệu",
-        location: "Đà Nẵng",
-        type: "full-time",
-        experience: "2-5 năm",
-        category: "Công nghệ",
-        description:
-          "Thiết kế và phát triển hệ thống backend với Java Spring Boot, microservices. Tối ưu hiệu suất và bảo mật.",
-        requirements:
-          "Java, Spring Boot, Microservices\nMySQL/PostgreSQL\nDocker, Kubernetes\nKinh nghiệm thiết kế API",
-        benefits:
-          "Package lương hấp dẫn\nThưởng dự án\nDu lịch hàng năm\nPhòng gym miễn phí",
-        createdBy: "emp01",
-        createdAt: "2026-03-22T10:00:00Z",
-        status: "active",
-        views: 203,
-      },
-      {
-        id: "job03",
-        title: "Nhân Viên Marketing Digital",
-        companyName: "Vingroup",
-        salary: "15-25 triệu",
-        location: "TP. Hồ Chí Minh",
-        type: "full-time",
-        experience: "1-3 năm",
-        category: "Marketing",
-        description:
-          "Quản lý chiến dịch marketing online, SEO/SEM, social media. Phân tích dữ liệu và tối ưu chuyển đổi.",
-        requirements:
-          "Kinh nghiệm Facebook Ads, Google Ads\nKỹ năng phân tích dữ liệu\nSáng tạo nội dung\nTiếng Anh tốt",
-        benefits:
-          "Lương cạnh tranh\nMôi trường năng động\nCơ hội thăng tiến\nTeambuilding thường xuyên",
-        createdBy: "emp02",
-        createdAt: "2026-03-25T09:00:00Z",
-        status: "active",
-        views: 89,
-      },
-      {
-        id: "job04",
-        title: "Thiết Kế UI/UX Designer",
-        companyName: "FPT Software",
-        salary: "18-30 triệu",
-        location: "Hà Nội",
-        type: "full-time",
-        experience: "1-3 năm",
-        category: "Thiết kế",
-        description:
-          "Thiết kế giao diện người dùng cho ứng dụng web và mobile. Nghiên cứu UX, tạo wireframe và prototype.",
-        requirements:
-          "Thành thạo Figma, Adobe XD\nHiểu biết Design System\nKỹ năng wireframing\nPortfolio ấn tượng",
-        benefits:
-          "Sáng tạo không giới hạn\nĐào tạo design thinking\nLàm việc linh hoạt\nMáy Mac cấp sẵn",
-        createdBy: "emp01",
-        createdAt: "2026-03-28T07:00:00Z",
-        status: "active",
-        views: 124,
-      },
-      {
-        id: "job05",
-        title: "Trợ Lý Giám Đốc",
-        companyName: "Vingroup",
-        salary: "12-18 triệu",
-        location: "TP. Hồ Chí Minh",
-        type: "full-time",
-        experience: "0-1 năm",
-        category: "Hành chính",
-        description:
-          "Hỗ trợ giám đốc trong công việc hàng ngày, quản lý lịch họp, soạn thảo văn bản, điều phối công việc.",
-        requirements:
-          "Tốt nghiệp ĐH chuyên ngành liên quan\nKỹ năng giao tiếp tốt\nThành thạo MS Office\nCẩn thận, chủ động",
-        benefits:
-          "Học hỏi từ lãnh đạo cấp cao\nMôi trường chuyên nghiệp\nPhụ cấp ăn trưa\nBảo hiểm cao cấp",
-        createdBy: "emp02",
-        createdAt: "2026-04-01T06:00:00Z",
-        status: "active",
-        views: 67,
-      },
-      {
-        id: "job06",
-        title: "Data Analyst (Phân tích dữ liệu)",
-        companyName: "FPT Software",
-        salary: "22-35 triệu",
-        location: "Hà Nội",
-        type: "full-time",
-        experience: "2-5 năm",
-        category: "Công nghệ",
-        description:
-          "Phân tích dữ liệu kinh doanh, xây dựng báo cáo và dashboard. Hỗ trợ ra quyết định dựa trên dữ liệu.",
-        requirements:
-          "SQL, Python hoặc R\nPower BI / Tableau\nKỹ năng thống kê\nKinh nghiệm ETL",
-        benefits:
-          "Dự án đa dạng\nĐào tạo chứng chỉ\nLương review 2 lần/năm\nWork from home 2 ngày/tuần",
-        createdBy: "emp01",
-        createdAt: "2026-04-03T08:00:00Z",
-        status: "active",
-        views: 95,
-      },
-      {
-        id: "job07",
-        title: "Nhân Viên Kinh Doanh B2B",
-        companyName: "Vingroup",
-        salary: "10-20 triệu + hoa hồng",
-        location: "Hà Nội",
-        type: "full-time",
-        experience: "0-1 năm",
-        category: "Kinh doanh",
-        description:
-          "Tìm kiếm và phát triển khách hàng doanh nghiệp. Tư vấn giải pháp và chốt hợp đồng.",
-        requirements:
-          "Kỹ năng giao tiếp xuất sắc\nChịu được áp lực\nCó xe máy và GPLX\nƯu tiên có kinh nghiệm",
-        benefits:
-          "Hoa hồng hấp dẫn\nThưởng KPI\nĐào tạo bài bản\nCơ hội thăng tiến nhanh",
-        createdBy: "emp02",
-        createdAt: "2026-04-05T10:00:00Z",
-        status: "active",
-        views: 43,
-      },
-      {
-        id: "job08",
-        title: "Thực Tập Sinh Lập Trình",
-        companyName: "FPT Software",
-        salary: "5-8 triệu",
-        location: "Đà Nẵng",
-        type: "part-time",
-        experience: "0-1 năm",
-        category: "Công nghệ",
-        description:
-          "Chương trình thực tập 3-6 tháng cho sinh viên năm cuối. Được mentoring bởi senior developer.",
-        requirements:
-          "Sinh viên năm 3-4 CNTT\nBiết cơ bản HTML/CSS/JS\nHam học hỏi\nCó thể làm 4-5 ngày/tuần",
-        benefits:
-          "Trợ cấp thực tập\nCơ hội nhận việc chính thức\nMentor 1-1\nChứng nhận thực tập",
-        createdBy: "emp01",
-        createdAt: "2026-04-07T09:00:00Z",
-        status: "active",
-        views: 210,
-      },
-    ];
-    this._set("jobs", jobs);
+    // Empty Jobs, Applications, Saved Jobs
+    this._set("jobs", []);
+    this._set("applications", []);
+    this._set("savedJobs", []);
+    this._set("interviews", []);
 
-    // Applications
-    this._set("applications", [
-      {
-        id: "app01",
-        jobId: "job01",
-        candidateId: "cand01",
-        fullName: "Lê Thị Hoa",
-        email: "hoa@gmail.com",
-        cv: "Tôi có 2 năm kinh nghiệm làm việc với React.js tại công ty ABC. Thành thạo TypeScript, Redux, và TailwindCSS.",
-        status: "pending",
-        appliedAt: "2026-04-01T10:00:00Z",
-      },
-      {
-        id: "app02",
-        jobId: "job03",
-        candidateId: "cand01",
-        fullName: "Lê Thị Hoa",
-        email: "hoa@gmail.com",
-        cv: "Tôi đam mê marketing digital với kinh nghiệm quản lý fanpage 50K followers và chạy ads Facebook.",
-        status: "accepted",
-        appliedAt: "2026-04-02T14:00:00Z",
-      },
-      {
-        id: "app03",
-        jobId: "job01",
-        candidateId: "cand02",
-        fullName: "Phạm Minh Trí",
-        email: "tri@gmail.com",
-        cv: "Fresh graduate với dự án portfolio ấn tượng. Giỏi React, Next.js. Đạt giải nhì cuộc thi lập trình cấp trường.",
-        status: "pending",
-        appliedAt: "2026-04-03T08:30:00Z",
-      },
-      {
-        id: "app04",
-        jobId: "job08",
-        candidateId: "cand02",
-        fullName: "Phạm Minh Trí",
-        email: "tri@gmail.com",
-        cv: "Sinh viên năm 4 ĐH Bách Khoa, GPA 3.5/4. Biết HTML/CSS/JS, đang học React. Mong muốn được thực tập.",
-        status: "pending",
-        appliedAt: "2026-04-06T11:00:00Z",
-      },
-    ]);
-
-    // Saved jobs
-    this._set("savedJobs", [
-      { userId: "cand01", jobId: "job04", savedAt: this._now() },
-      { userId: "cand01", jobId: "job06", savedAt: this._now() },
-    ]);
-
-    localStorage.setItem("db_seeded", "true");
+    localStorage.setItem("db_seeded_clean", "true");
   },
 };
 

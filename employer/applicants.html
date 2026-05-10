@@ -1,66 +1,83 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Tìm kiếm ứng viên — JobViệt</title>
-  <link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/navbar.css">
-  <link rel="stylesheet" href="../css/pages/dashboard.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-</head>
-<body><div id="navbar-placeholder"></div>
-  <div class="layout-sidebar">
-    <aside class="sidebar" id="sidebar"></aside>
-    <main class="content-area">
-      <div class="content-header flex-between">
-        <div>
-          <h1><i class="fa-solid fa-users"></i> Tìm kiếm ứng viên</h1>
-          <p>Tìm kiếm và mời ứng viên tiềm năng ứng tuyển</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Tìm kiếm ứng viên — JobViệt</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/pages/dashboard.css" />
+    <link rel="stylesheet" href="../css/pages/employer.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="navbar-placeholder"></div>
+    <div class="layout-sidebar">
+      <aside class="sidebar" id="sidebar"></aside>
+      <main class="content-area">
+        <div class="content-header flex-between">
+          <div>
+            <h1><i class="fa-solid fa-users"></i> Tìm kiếm ứng viên</h1>
+            <p>Tìm kiếm và mời ứng viên tiềm năng ứng tuyển</p>
+          </div>
+          <div class="flex" style="gap: 12px">
+            <input
+              type="text"
+              id="searchInput"
+              class="form-input"
+              placeholder="Tìm theo kỹ năng, vị trí..."
+              style="width: 300px"
+            />
+            <button class="btn btn-primary" onclick="handleSearch()">
+              Tìm kiếm
+            </button>
+          </div>
         </div>
-        <div class="flex" style="gap: 12px">
-          <input type="text" id="searchInput" class="form-input" placeholder="Tìm theo kỹ năng, vị trí..." style="width: 300px">
-          <button class="btn btn-primary" onclick="handleSearch()">Tìm kiếm</button>
+
+        <div class="grid grid-3 stagger" id="candidateList">
+          <!-- Rendered by JS -->
         </div>
-      </div>
+      </main>
+    </div>
+    <script src="../js/db.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+      const user = Auth.requireAuth(["employer"]);
+      if (!user) throw "redirect";
+      App.renderSidebar("employer", "applicants");
 
-      <div class="grid grid-3 stagger" id="candidateList">
-        <!-- Rendered by JS -->
-      </div>
-    </main>
-  </div>
-  <script src="../js/db.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/notifications.js"></script>
-  <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
-  <script>
-    const user = Auth.requireAuth(['employer']);
-    if (!user) throw 'redirect';
-    App.renderSidebar('employer', 'applicants');
+      const allCandidates = DB.getUsers().filter((u) => u.role === "candidate");
 
-    const allCandidates = DB.getUsers().filter(u => u.role === 'candidate');
+      function render(candidates) {
+        const container = document.getElementById("candidateList");
+        if (!candidates.length) {
+          container.innerHTML =
+            '<div class="empty-state" style="grid-column: 1 / -1; padding: 60px;"><div class="empty-icon"><i class="fa-solid fa-users-slash"></i></div><h3>Không tìm thấy ứng viên</h3><p>Hãy thử thay đổi từ khóa tìm kiếm của bạn</p></div>';
+          return;
+        }
 
-    function render(candidates) {
-      const container = document.getElementById('candidateList');
-      if (!candidates.length) {
-        container.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1; padding: 60px;"><div class="empty-icon"><i class="fa-solid fa-users-slash"></i></div><h3>Không tìm thấy ứng viên</h3><p>Hãy thử thay đổi từ khóa tìm kiếm của bạn</p></div>';
-        return;
-      }
-
-      container.innerHTML = candidates.map(c => {
-        const skills = Array.isArray(c.skills) ? c.skills : [];
-        return `
+        container.innerHTML = candidates
+          .map((c) => {
+            const skills = Array.isArray(c.skills) ? c.skills : [];
+            return `
           <div class="card animate-fade-up flex" style="flex-direction:column; align-items:flex-start; gap:16px; min-height: 280px;">
             <div class="flex" style="gap:16px; width:100%">
               <div class="avatar" style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg, var(--primary), #38bdf8);display:flex;align-items:center;justify-content:center;font-weight:bold;color:white;font-size:1.2rem">${c.fullName[0]}</div>
               <div>
                 <h3 style="margin-bottom:4px">${c.fullName}</h3>
-                <p style="color:var(--text-light);font-size:0.9rem">${c.title || 'Ứng viên mới'}</p>
+                <p style="color:var(--text-light);font-size:0.9rem">${c.title || "Ứng viên mới"}</p>
               </div>
             </div>
             <div style="font-size:0.85rem; color:var(--text-light); flex: 1;">
-              <div style="margin-bottom:8px"><i class="fa-solid fa-location-dot text-danger"></i> ${c.location || 'Chưa cập nhật'} &nbsp;·&nbsp; <i class="fa-solid fa-briefcase text-primary"></i> ${c.experience || 'Mới tốt nghiệp'}</div>
+              <div style="margin-bottom:8px"><i class="fa-solid fa-location-dot text-danger"></i> ${c.location || "Chưa cập nhật"} &nbsp;·&nbsp; <i class="fa-solid fa-briefcase text-primary"></i> ${c.experience || "Mới tốt nghiệp"}</div>
               <div class="flex" style="gap:6px; flex-wrap:wrap; margin-top:10px">
-                ${skills.length ? skills.map(s => `<span class="badge badge-neutral">${s}</span>`).join('') : '<span style="color:var(--text-lighter); font-style: italic;">Chưa cập nhật kỹ năng</span>'}
+                ${skills.length ? skills.map((s) => `<span class="badge badge-neutral">${s}</span>`).join("") : '<span style="color:var(--text-lighter); font-style: italic;">Chưa cập nhật kỹ năng</span>'}
               </div>
             </div>
             <div class="flex-between" style="width:100%; margin-top:auto; border-top:1px solid var(--border-light); padding-top:16px">
@@ -69,31 +86,44 @@
             </div>
           </div>
         `;
-      }).join('');
-    }
+          })
+          .join("");
+      }
 
-    function handleSearch() {
-      const q = document.getElementById('searchInput').value.toLowerCase().trim();
-      
-      const filtered = allCandidates.filter(c => {
-        const name = (c.fullName || '').toLowerCase();
-        const title = (c.title || '').toLowerCase();
-        const loc = (c.location || '').toLowerCase();
-        const exp = (c.experience || '').toLowerCase();
-        const skills = (Array.isArray(c.skills) ? c.skills.join(' ') : '').toLowerCase();
+      function handleSearch() {
+        const q = document
+          .getElementById("searchInput")
+          .value.toLowerCase()
+          .trim();
 
-        return name.includes(q) || title.includes(q) || loc.includes(q) || exp.includes(q) || skills.includes(q);
-      });
+        const filtered = allCandidates.filter((c) => {
+          const name = (c.fullName || "").toLowerCase();
+          const title = (c.title || "").toLowerCase();
+          const loc = (c.location || "").toLowerCase();
+          const exp = (c.experience || "").toLowerCase();
+          const skills = (
+            Array.isArray(c.skills) ? c.skills.join(" ") : ""
+          ).toLowerCase();
 
-      render(filtered);
-    }
+          return (
+            name.includes(q) ||
+            title.includes(q) ||
+            loc.includes(q) ||
+            exp.includes(q) ||
+            skills.includes(q)
+          );
+        });
 
-    // Initial render
-    render(allCandidates);
+        render(filtered);
+      }
 
-    // Add event listener to search input for real-time search
-    document.getElementById('searchInput').addEventListener('input', handleSearch);
-  </script>
-</body>
+      // Initial render
+      render(allCandidates);
+
+      // Add event listener to search input for real-time search
+      document
+        .getElementById("searchInput")
+        .addEventListener("input", handleSearch);
+    </script>
+  </body>
 </html>
-

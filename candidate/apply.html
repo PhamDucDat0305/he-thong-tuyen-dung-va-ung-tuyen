@@ -1,51 +1,65 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ứng tuyển — JobViệt</title>
-  <link rel="stylesheet" href="../css/styles.css">
-  <link rel="stylesheet" href="../css/navbar.css">
-  <link rel="stylesheet" href="../css/pages/dashboard.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-</head>
-<body><div id="navbar-placeholder"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ứng tuyển — JobViệt</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/pages/dashboard.css" />
+    <link rel="stylesheet" href="../css/pages/candidate.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="navbar-placeholder"></div>
     <section class="section">
-      <div class="container" style="max-width:700px">
-        <a href="javascript:history.back()" class="btn btn-ghost mb-2">← Quay lại</a>
-        <div class="card animate-fade-up" style="padding:32px" id="applyCard"></div>
+      <div class="container container-narrow">
+        <a href="javascript:history.back()" class="btn btn-ghost mb-2"
+          >← Quay lại</a
+        >
+        <div
+          class="card card-large animate-fade-up"
+          id="applyCard"
+        ></div>
       </div>
     </section>
     <footer class="footer" id="footer"></footer>
-  <script src="../js/db.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/notifications.js"></script>
-  <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
-  <script>
-    const user = Auth.requireAuth(['candidate']);
-    App.renderFooter();
+    <script src="../js/db.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+      const user = Auth.requireAuth(["candidate"]);
+      App.renderFooter();
 
-    const jobId = new URLSearchParams(location.search).get('jobId');
-    const job = DB.getJobById(jobId);
-    const card = document.getElementById('applyCard');
+      const jobId = new URLSearchParams(location.search).get("jobId");
+      const job = DB.getJobById(jobId);
+      const card = document.getElementById("applyCard");
 
-    if (!job) { card.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-circle-xmark"></i></div><h3>Không tìm thấy việc làm</h3></div>'; }
-    else if (DB.hasApplied(jobId, user.id)) {
-      card.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-circle-check"></i></div><h3>Bạn đã ứng tuyển việc này</h3><p>Theo dõi trạng thái tại trang "Việc đã ứng tuyển"</p><a href="my-applications.html" class="btn btn-primary mt-2">Xem danh sách</a></div>';
-    } else {
-      card.innerHTML = `
-        <div style="margin-bottom:24px">
+      if (!job) {
+        card.innerHTML =
+          '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-circle-xmark"></i></div><h3>Không tìm thấy việc làm</h3></div>';
+      } else if (DB.hasApplied(jobId, user.id)) {
+        card.innerHTML =
+          '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-circle-check"></i></div><h3>Bạn đã ứng tuyển việc này</h3><p>Theo dõi trạng thái tại trang "Việc đã ứng tuyển"</p><a href="my-applications.html" class="btn btn-primary mt-2">Xem danh sách</a></div>';
+      } else {
+        card.innerHTML = `
+        <div class="mb-3">
           <h2><i class="fa-solid fa-envelope-open-text"></i> Ứng tuyển</h2>
-          <p style="color:var(--text-light);margin-top:4px">${job.title} — ${job.companyName}</p>
+          <p class="cv-meta">${job.title} — ${job.companyName}</p>
         </div>
         <form onsubmit="submitApplication(event)">
           <div class="form-group">
             <label class="form-label">Họ và tên</label>
-            <input class="form-input" id="fullName" value="${user.fullName || ''}" required>
+            <input class="form-input" id="fullName" value="${user.fullName || ""}" required>
           </div>
           <div class="form-group">
             <label class="form-label">Email</label>
-            <input type="email" class="form-input" id="email" value="${user.email || ''}" required>
+            <input type="email" class="form-input" id="email" value="${user.email || ""}" required>
           </div>
           <div class="form-group">
             <label class="form-label">Giới thiệu bản thân / CV</label>
@@ -55,21 +69,24 @@
           <button type="submit" class="btn btn-primary btn-large w-100"><i class="fa-solid fa-paper-plane"></i> Gửi ứng tuyển</button>
         </form>
       `;
-    }
+      }
 
-    function submitApplication(e) {
-      e.preventDefault();
-      DB.createApplication({
-        jobId: jobId,
-        candidateId: user.id,
-        fullName: document.getElementById('fullName').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        cv: document.getElementById('cv').value.trim()
-      });
-      Toast.success('🎉 Ứng tuyển thành công! Nhà tuyển dụng sẽ xem hồ sơ của bạn.');
-      setTimeout(() => { location.href = 'my-applications.html'; }, 1500);
-    }
-  </script>
-</body>
+      function submitApplication(e) {
+        e.preventDefault();
+        DB.createApplication({
+          jobId: jobId,
+          candidateId: user.id,
+          fullName: document.getElementById("fullName").value.trim(),
+          email: document.getElementById("email").value.trim(),
+          cv: document.getElementById("cv").value.trim(),
+        });
+        Toast.success(
+          "🎉 Ứng tuyển thành công! Nhà tuyển dụng sẽ xem hồ sơ của bạn.",
+        );
+        setTimeout(() => {
+          location.href = "my-applications.html";
+        }, 1500);
+      }
+    </script>
+  </body>
 </html>
-

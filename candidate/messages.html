@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Tin nhắn — JobViệt</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/pages/dashboard.css" />
+    <link rel="stylesheet" href="../css/pages/messages.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="navbar-placeholder"></div>
+    <div class="layout-sidebar">
+      <aside class="sidebar" id="sidebar"></aside>
+      <main class="content-area">
+        <div class="messages-layout animate-fade-up">
+          <!-- Sidebar: Conversations -->
+          <div class="conversations-sidebar">
+            <div class="conv-header">Tin nhắn</div>
+            <div class="conv-list" id="convList">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- Main Chat Area -->
+          <div class="chat-main" id="chatMain">
+            <div class="empty-state" style="margin: auto">
+              <div class="empty-icon"><i class="fa-solid fa-comments"></i></div>
+              <h3>Chọn một cuộc hội thoại</h3>
+              <p>Bắt đầu trò chuyện với nhà tuyển dụng của bạn.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="../js/db.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+      const user = Auth.requireAuth(["candidate"]);
+      if (!user) throw "redirect";
+      App.renderSidebar("candidate", "messages");
+
+      let activeContactId = new URLSearchParams(location.search).get("to");
+
+      function renderConversations() {
+        const conversations = DB.getConversations(user.id);
+        const list = document.getElementById("convList");
+
+        if (!conversations.length) {
+          list.innerHTML = '<p class="text-center" style="padding:20px; color:var(--text-light); font-size:0.9rem">Chưa có hội thoại nào.</p>';
+          return;
+        }
+
+        list.innerHTML = conversations.map(c => {
+          const initials = c.contact.fullName.split(' ').map(n => n[0]).join('').slice(0, 2);
+          const isActive = c.contact.id === activeContactId;
+          return `
+            <div class="conv-item ${isActive ? 'active' : ''}" onclick="selectContact('${c.contact.id}')">
+              <div class="conv-avatar">${initials}</div>
+              <div class="conv-info">
+                <div class="conv-name">${c.contact.fullName}</div>
+                <div class="conv-last-msg">${c.lastMessage ? (c.lastMessage.senderId === user.id ? 'Bạn: ' : '') + c.lastMessage.content : 'Bắt đầu trò chuyện'}</div>
+              </div>
+              ${c.unreadCount > 0 ? `<div class="conv-unread">${c.unreadCount}</div>` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+
+      function selectContact(contactId) {
+        activeContactId = contactId;
+        // Update URL without reload
+        const newUrl = window.location.pathname + '?to=' + contactId;
+        window.history.pushState({path:newUrl},'',newUrl);
+        
+        renderConversations();
+        renderChat();
+        DB.markAsRead(user.id, contactId);
+      }
+
+      function renderChat() {
+        if (!activeContactId) return;
+
+        const contact = DB.getUserById(activeContactId);
+        if (!contact) return;
+
+        const messages = DB.getMessages(user.id, activeContactId);
+        const initials = contact.fullName.split(' ').map(n => n[0]).join('').slice(0, 2);
+
+        const chatMain = document.getElementById("chatMain");
+        chatMain.innerHTML = `
+          <div class="chat-header">
+            <div class="conv-avatar" style="width:40px; height:40px">${initials}</div>
+            <div class="conv-name">${contact.fullName}</div>
+          </div>
+          <div class="chat-messages" id="msgList">
+            ${messages.map(m => {
+              const isMine = m.senderId === user.id;
+              const time = new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+              return `
+                <div class="msg ${isMine ? 'msg-sent' : 'msg-received'}">
+                  ${m.content}
+                  <span class="msg-time">${time}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+          <form class="chat-input-area" onsubmit="handleSend(event)">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Nhập tin nhắn..." autocomplete="off">
+            <button type="submit" class="btn-send"><i class="fa-solid fa-paper-plane"></i></button>
+          </form>
+        `;
+
+        const msgList = document.getElementById("msgList");
+        msgList.scrollTop = msgList.scrollHeight;
+      }
+
+      function handleSend(e) {
+        e.preventDefault();
+        const input = document.getElementById("chatInput");
+        const content = input.value.trim();
+        if (!content || !activeContactId) return;
+
+        DB.sendMessage(user.id, activeContactId, content);
+        input.value = "";
+        renderChat();
+        renderConversations();
+      }
+
+      renderConversations();
+      if (activeContactId) {
+        renderChat();
+        DB.markAsRead(user.id, activeContactId);
+      }
+      
+      // Auto refresh for "mock" real-time
+      setInterval(() => {
+        renderConversations();
+        if (activeContactId) {
+          const countBefore = document.getElementById('msgList').children.length;
+          const messages = DB.getMessages(user.id, activeContactId);
+          if (messages.length > countBefore) {
+            renderChat();
+          }
+        }
+      }, 3000);
+    </script>
+  </body>
+</html>

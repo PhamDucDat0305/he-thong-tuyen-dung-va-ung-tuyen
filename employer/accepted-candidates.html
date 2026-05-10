@@ -1,44 +1,62 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Ứng viên đã trúng tuyển — JobViệt</title>
-  <link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/navbar.css">
-  <link rel="stylesheet" href="../css/pages/dashboard.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-</head>
-<body><div id="navbar-placeholder"></div>
-  <div class="layout-sidebar">
-    <aside class="sidebar" id="sidebar"></aside>
-    <main class="content-area">
-      <div class="content-header">
-        <h1><i class="fa-solid fa-circle-check text-success"></i> Ứng viên đã trúng tuyển</h1>
-        <p>Danh sách các ứng viên đã được bạn chấp nhận cho các vị trí tuyển dụng</p>
-      </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Ứng viên đã trúng tuyển — JobViệt</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/pages/dashboard.css" />
+    <link rel="stylesheet" href="../css/pages/employer.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="navbar-placeholder"></div>
+    <div class="layout-sidebar">
+      <aside class="sidebar" id="sidebar"></aside>
+      <main class="content-area">
+        <div class="content-header">
+          <h1>
+            <i class="fa-solid fa-circle-check text-success"></i> Ứng viên đã
+            trúng tuyển
+          </h1>
+          <p>
+            Danh sách các ứng viên đã được bạn chấp nhận cho các vị trí tuyển
+            dụng
+          </p>
+        </div>
 
-      <div class="grid grid-3 stagger" id="acceptedCandidates">
-        <!-- Rendered by JS -->
-      </div>
-    </main>
-  </div>
-  <script src="../js/db.js"></script><script src="../js/auth.js"></script><script src="../js/notifications.js"></script><script src="../js/app.js"></script><script src="../js/navbar.js"></script>
-  <script>
-    const user = Auth.requireAuth(['employer']);
-    if (!user) throw 'r';
-    App.renderSidebar('employer', 'accepted');
+        <div class="grid grid-3 stagger" id="acceptedCandidates">
+          <!-- Rendered by JS -->
+        </div>
+      </main>
+    </div>
+    <script src="../js/db.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+      const user = Auth.requireAuth(["employer"]);
+      if (!user) throw "r";
+      App.renderSidebar("employer", "accepted");
 
-    function render() {
-      const myJobs = DB.getJobsByEmployer(user.id);
-      const myJobIds = myJobs.map(j => j.id);
-      
-      const allApps = DB.getApplications();
-      const acceptedApps = allApps.filter(a => myJobIds.includes(a.jobId) && a.status === 'accepted');
-      
-      const container = document.getElementById('acceptedCandidates');
+      function render() {
+        const myJobs = DB.getJobsByEmployer(user.id);
+        const myJobIds = myJobs.map((j) => j.id);
 
-      if (!acceptedApps.length) {
-        container.innerHTML = `
+        const allApps = DB.getApplications();
+        const acceptedApps = allApps.filter(
+          (a) => myJobIds.includes(a.jobId) && a.status === "accepted",
+        );
+
+        const container = document.getElementById("acceptedCandidates");
+
+        if (!acceptedApps.length) {
+          container.innerHTML = `
           <div class="empty-state" style="grid-column: 1/-1; padding: 60px;">
             <div class="empty-icon"><i class="fa-solid fa-user-check"></i></div>
             <h3>Chưa có ứng viên trúng tuyển</h3>
@@ -46,26 +64,27 @@
             <a href="applied-candidates.html" class="btn btn-primary mt-2">Xem hồ sơ ứng tuyển</a>
           </div>
         `;
-        return;
-      }
+          return;
+        }
 
-      container.innerHTML = acceptedApps.map(a => {
-        const job = DB.getJobById(a.jobId);
-        const candidate = DB.getUserById(a.candidateId);
-        if (!candidate) return '';
-        
-        return `
+        container.innerHTML = acceptedApps
+          .map((a) => {
+            const job = DB.getJobById(a.jobId);
+            const candidate = DB.getUserById(a.candidateId);
+            if (!candidate) return "";
+
+            return `
           <div class="card animate-fade-up" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
             <div class="flex" style="gap: 16px;">
               <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--success), #22c55e); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem;">${candidate.fullName[0]}</div>
               <div>
                 <h3 style="margin-bottom: 4px;">${candidate.fullName}</h3>
-                <p style="color: var(--text-light); font-size: 0.9rem;">${candidate.title || 'Ứng viên'}</p>
+                <p style="color: var(--text-light); font-size: 0.9rem;">${candidate.title || "Ứng viên"}</p>
               </div>
             </div>
             
             <div style="padding: 12px; background: var(--bg-light); border-radius: 8px; font-size: 0.85rem;">
-              <div style="margin-bottom: 4px;"><strong class="text-primary">Vị trí:</strong> ${job ? job.title : 'N/A'}</div>
+              <div style="margin-bottom: 4px;"><strong class="text-primary">Vị trí:</strong> ${job ? job.title : "N/A"}</div>
               <div><strong class="text-primary">Email:</strong> ${candidate.email}</div>
             </div>
 
@@ -78,17 +97,23 @@
             </div>
           </div>
         `;
-      }).join('');
-    }
+          })
+          .join("");
+      }
 
-    function cancelCollab(appId) {
-      if (!confirm('Bạn có chắc chắn muốn hủy hợp tác với ứng viên này? Hồ sơ sẽ bị xóa khỏi danh sách trúng tuyển.')) return;
-      DB.deleteApplication(appId);
-      Toast.success('Đã hủy hợp tác với ứng viên.');
+      function cancelCollab(appId) {
+        if (
+          !confirm(
+            "Bạn có chắc chắn muốn hủy hợp tác với ứng viên này? Hồ sơ sẽ bị xóa khỏi danh sách trúng tuyển.",
+          )
+        )
+          return;
+        DB.deleteApplication(appId);
+        Toast.success("Đã hủy hợp tác với ứng viên.");
+        render();
+      }
+
       render();
-    }
-
-    render();
-  </script>
-</body>
+    </script>
+  </body>
 </html>

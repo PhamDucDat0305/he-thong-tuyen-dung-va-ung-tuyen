@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="../css/navbar.css">
   <link rel="stylesheet" href="../css/pages/dashboard.css">
+  <link rel="stylesheet" href="../css/pages/employer.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
   <div id="navbar-placeholder"></div>
@@ -47,25 +48,26 @@
       document.getElementById('appList').innerHTML = apps.map(a => {
         const [label, cls] = statusMap[a.status] || ['Chưa rõ', 'badge-neutral'];
         return `
-          <div class="card mb-2 animate-fade-up" style="padding:24px">
+          <div class="card applicant-card mb-2 animate-fade-up">
             <div class="flex-between flex-wrap" style="gap:12px">
               <div class="flex" style="gap:16px">
-                <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">${a.fullName[0]}</div>
-                <div><strong style="font-size:1.05rem">${a.fullName}</strong><br><span style="font-size:.85rem;color:var(--text-light)"><i class="fa-solid fa-envelope"></i> ${a.email} · <i class="fa-solid fa-calendar-days"></i> ${App.formatDate(a.appliedAt)}</span></div>
+                <div class="applicant-avatar">${a.fullName[0]}</div>
+                <div><strong class="applicant-name">${a.fullName}</strong><br><span class="applicant-meta"><i class="fa-solid fa-envelope"></i> ${a.email} · <i class="fa-solid fa-calendar-days"></i> ${App.formatDate(a.appliedAt)}</span></div>
               </div>
               <span class="badge ${cls}">${label}</span>
             </div>
-            <div style="margin:16px 0;padding:16px;background:var(--bg-light);border-radius:var(--radius);line-height:1.7;border:1px solid var(--border-light)">
-              <strong style="font-size:.85rem;color:var(--text-light)"><i class="fa-solid fa-file-lines"></i> CV / Giới thiệu:</strong><br>
-              <div style="margin-top:6px;white-space:pre-line">${a.cv}</div>
+            <div class="cv-content-box">
+              <strong class="cv-label"><i class="fa-solid fa-file-lines"></i> CV / Giới thiệu:</strong><br>
+              <div class="cv-text">${a.cv}</div>
             </div>
             <div class="flex" style="gap:8px" id="actions_${a.id}">
+              <button onclick="App.openChat('${a.candidateId}')" class="btn btn-sm btn-info"><i class="fa-solid fa-comments"></i> Liên hệ</button>
               ${a.status === 'applied' ? `
                   <button class="btn btn-sm btn-primary" onclick="showInterviewForm('${a.id}')"><i class="fa-solid fa-calendar-plus"></i> Đặt lịch phỏng vấn</button>
                   <button class="btn btn-sm btn-outline-danger" onclick="updateStatus('${a.id}','rejected')"><i class="fa-solid fa-xmark"></i> Từ chối</button>
               ` : `<span style="font-size:.85rem;color:var(--text-light)">Trạng thái: <strong>${label}</strong></span>`}
             </div>
-            <div id="interviewFormContainer_${a.id}" style="display:none; margin-top:16px; padding:16px; background:var(--bg); border:1px dashed var(--primary); border-radius:8px;"></div>
+            <div id="interviewFormContainer_${a.id}" class="interview-form-inline"></div>
           </div>`;
       }).join('');
     }
@@ -87,23 +89,23 @@
         <form onsubmit="handleInlineSchedule(event, '${appId}')">
           <div class="grid grid-2" style="gap:12px; margin-bottom:12px">
             <div class="form-group mb-0">
-              <label class="form-label" style="font-size:0.8rem">Ngày phỏng vấn</label>
+              <label class="form-label form-label-sm">Ngày phỏng vấn</label>
               <input type="date" class="form-input" id="intDate_${appId}" required>
             </div>
             <div class="form-group mb-0">
-              <label class="form-label" style="font-size:0.8rem">Giờ phỏng vấn</label>
+              <label class="form-label form-label-sm">Giờ phỏng vấn</label>
               <input type="time" class="form-input" id="intTime_${appId}" required>
             </div>
           </div>
           <div class="form-group mb-3">
-            <label class="form-label" style="font-size:0.8rem">Hình thức</label>
+            <label class="form-label form-label-sm">Hình thức</label>
             <select class="form-input" id="intType_${appId}">
               <option value="online">Online (Google Meet / Zoom)</option>
               <option value="offline">Trực tiếp tại văn phòng</option>
             </select>
           </div>
           <div class="form-group mb-3">
-            <label class="form-label" style="font-size:0.8rem">Ghi chú / Địa điểm</label>
+            <label class="form-label form-label-sm">Ghi chú / Địa điểm</label>
             <textarea class="form-textarea" id="intNotes_${appId}" rows="2" placeholder="Link họp hoặc địa chỉ..."></textarea>
           </div>
           <div class="flex-end" style="gap:10px">

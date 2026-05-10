@@ -1,98 +1,128 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Lịch phỏng vấn — JobViệt</title>
-  <link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/navbar.css">
-  <link rel="stylesheet" href="../css/pages/dashboard.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-</head>
-<body><div id="navbar-placeholder"></div>
-  <div class="layout-sidebar">
-    <aside class="sidebar" id="sidebar"></aside>
-    <main class="content-area">
-      <div class="content-header flex-between">
-        <div>
-          <h1><i class="fa-solid fa-calendar-days"></i> Lịch phỏng vấn</h1>
-          <p>Quản lý các buổi phỏng vấn sắp tới</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Lịch phỏng vấn — JobViệt</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/pages/dashboard.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="navbar-placeholder"></div>
+    <div class="layout-sidebar">
+      <aside class="sidebar" id="sidebar"></aside>
+      <main class="content-area">
+        <div class="content-header flex-between">
+          <div>
+            <h1><i class="fa-solid fa-calendar-days"></i> Lịch phỏng vấn</h1>
+            <p>Quản lý các buổi phỏng vấn sắp tới</p>
+          </div>
+          <button
+            class="btn btn-primary"
+            onclick="Toast.info('Chức năng đang phát triển')"
+          >
+            + Lên lịch mới
+          </button>
         </div>
-        <button class="btn btn-primary" onclick="Toast.info('Chức năng đang phát triển')">+ Lên lịch mới</button>
-      </div>
 
-      <div class="card animate-fade-up">
-        <h3 class="mb-2">Sắp diễn ra</h3>
-        <div class="table-wrapper">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Thời gian</th>
-                <th>Ứng viên</th>
-                <th>Vị trí</th>
-                <th>Hình thức / Địa điểm</th>
-                <th>Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody id="interviewList">
-              <!-- Rendered by JS -->
-            </tbody>
-          </table>
+        <div class="card animate-fade-up">
+          <h3 class="mb-2">Sắp diễn ra</h3>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Thời gian</th>
+                  <th>Ứng viên</th>
+                  <th>Vị trí</th>
+                  <th>Hình thức / Địa điểm</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody id="interviewList">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-    </main>
-  </div>
-  <script src="../js/db.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/notifications.js"></script>
-  <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
-  <script>
-    const user = Auth.requireAuth(['employer']);
-    if (!user) throw 'redirect';
-    App.renderSidebar('employer', 'interviews');
+      </main>
+    </div>
+    <script src="../js/db.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+      const user = Auth.requireAuth(["employer"]);
+      if (!user) throw "redirect";
+      App.renderSidebar("employer", "interviews");
 
-    function render() {
-      const myJobs = DB.getJobsByEmployer(user.id);
-      const myJobIds = myJobs.map(j => j.id);
-      const allApps = DB.getApplications().filter(a => myJobIds.includes(a.jobId) && a.status === 'interview_scheduled');
-      const allInterviews = DB.getInterviews();
-      
-      const container = document.getElementById('interviewList');
-      if (!allApps.length) {
-        container.innerHTML = '<tr><td colspan="5" class="text-center" style="padding:40px; color:var(--text-light)">Chưa có lịch phỏng vấn nào sắp tới.</td></tr>';
-        return;
-      }
+      function render() {
+        const myJobs = DB.getJobsByEmployer(user.id);
+        const myJobIds = myJobs.map((j) => j.id);
+        const allApps = DB.getApplications().filter(
+          (a) =>
+            myJobIds.includes(a.jobId) && a.status === "interview_scheduled",
+        );
+        const allInterviews = DB.getInterviews();
 
-      container.innerHTML = allApps.map(a => {
-        const job = DB.getJobById(a.jobId);
-        const interview = allInterviews.find(i => i.applicationId === a.id);
-        const timeStr = interview ? `${interview.date} · ${interview.time}` : 'Chưa cập nhật';
-        
-        return `
+        const container = document.getElementById("interviewList");
+        if (!allApps.length) {
+          container.innerHTML =
+            '<tr><td colspan="5" class="text-center" style="padding:40px; color:var(--text-light)">Chưa có lịch phỏng vấn nào sắp tới.</td></tr>';
+          return;
+        }
+
+        container.innerHTML = allApps
+          .map((a) => {
+            const job = DB.getJobById(a.jobId);
+            const interview = allInterviews.find(
+              (i) => i.applicationId === a.id,
+            );
+            const timeStr = interview
+              ? `${interview.date} · ${interview.time}`
+              : "Chưa cập nhật";
+
+            return `
           <tr>
             <td data-label="Thời gian"><strong>${timeStr}</strong></td>
             <td data-label="Ứng viên"><strong>${a.fullName}</strong></td>
-            <td data-label="Vị trí">${job ? job.title : 'N/A'}</td>
-            <td data-label="Hình thức"><span class="badge badge-neutral">${interview ? (interview.type === 'online' ? 'Online' : 'Trực tiếp') : '-'}</span></td>
+            <td data-label="Vị trí">${job ? job.title : "N/A"}</td>
+            <td data-label="Hình thức"><span class="badge badge-neutral">${interview ? (interview.type === "online" ? "Online" : "Trực tiếp") : "-"}</span></td>
             <td data-label="Hành động">
               <div class="flex" style="gap:8px">
+                <button onclick="App.openChat('${a.candidateId}')" class="btn btn-xs btn-info" title="Nhắn tin"><i class="fa-solid fa-comments"></i></button>
                 <button class="btn btn-xs btn-success" onclick="updateResult('${a.id}', 'accepted')"><i class="fa-solid fa-check"></i> Đậu</button>
                 <button class="btn btn-xs btn-danger" onclick="updateResult('${a.id}', 'failed')"><i class="fa-solid fa-xmark"></i> Không đạt</button>
               </div>
             </td>
           </tr>
         `;
-      }).join('');
-    }
+          })
+          .join("");
+      }
 
-    function updateResult(appId, status) {
-      if(!confirm(`Xác nhận ứng viên này ${status === 'accepted' ? 'ĐẬU' : 'KHÔNG ĐẠT'} phỏng vấn?`)) return;
-      DB.updateApplication(appId, { status });
-      Toast.success(status === 'accepted' ? 'Chúc mừng! Ứng viên đã trúng tuyển.' : 'Đã cập nhật trạng thái phỏng vấn.');
+      function updateResult(appId, status) {
+        if (
+          !confirm(
+            `Xác nhận ứng viên này ${status === "accepted" ? "ĐẬU" : "KHÔNG ĐẠT"} phỏng vấn?`,
+          )
+        )
+          return;
+        DB.updateApplication(appId, { status });
+        Toast.success(
+          status === "accepted"
+            ? "Chúc mừng! Ứng viên đã trúng tuyển."
+            : "Đã cập nhật trạng thái phỏng vấn.",
+        );
+        render();
+      }
+
       render();
-    }
-
-    render();
-  </script>
-</body>
+    </script>
+  </body>
 </html>
-

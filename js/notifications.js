@@ -16,11 +16,11 @@ const Toast = {
 
   show(message, type = "info", duration = 3000) {
     this.init();
-    const icons = { 
-      success: '<i class="fa-solid fa-circle-check"></i>', 
-      error: '<i class="fa-solid fa-circle-xmark"></i>', 
-      warning: '<i class="fa-solid fa-triangle-exclamation"></i>', 
-      info: '<i class="fa-solid fa-circle-info"></i>' 
+    const icons = {
+      success: '<i class="fa-solid fa-circle-check"></i>',
+      error: '<i class="fa-solid fa-circle-xmark"></i>',
+      warning: '<i class="fa-solid fa-triangle-exclamation"></i>',
+      info: '<i class="fa-solid fa-circle-info"></i>',
     };
     const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;

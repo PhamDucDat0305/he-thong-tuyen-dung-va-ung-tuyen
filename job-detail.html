@@ -1,52 +1,102 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chi tiết công việc — JobViệt</title>
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/navbar.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <style>
-    .detail-container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
-    .job-header { background: white; padding: 32px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 24px; }
-    .job-body { background: white; padding: 32px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-    .section-title { font-size: 1.2rem; font-weight: 700; margin: 24px 0 12px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
-    .meta-item { display: flex; align-items: center; gap: 8px; color: var(--text-light); margin-bottom: 8px; }
-    .apply-section { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-light); display: flex; justify-content: flex-end; }
-  </style>
-</head>
-<body>
-  <div id="navbar-placeholder"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chi tiết công việc — JobViệt</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/navbar.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+    <style>
+      .detail-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+      .job-header {
+        background: white;
+        padding: 32px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 24px;
+      }
+      .job-body {
+        background: white;
+        padding: 32px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      }
+      .section-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin: 24px 0 12px;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-light);
+        margin-bottom: 8px;
+      }
+      .apply-section {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border-light);
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+      .btn-saved {
+        color: var(--primary) !important;
+        border-color: var(--primary) !important;
+        background: rgba(var(--primary-rgb), 0.1) !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="navbar-placeholder"></div>
 
-  <div class="detail-container">
-    <div id="jobDetail">
-      <div class="text-center" style="padding: 100px 0;">
-        <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary);"></i>
-        <p style="margin-top: 16px; color: var(--text-light);">Đang tải thông tin công việc...</p>
+    <div class="detail-container">
+      <div id="jobDetail">
+        <div class="text-center" style="padding: 100px 0">
+          <i
+            class="fa-solid fa-circle-notch fa-spin"
+            style="font-size: 3rem; color: var(--primary)"
+          ></i>
+          <p style="margin-top: 16px; color: var(--text-light)">
+            Đang tải thông tin công việc...
+          </p>
+        </div>
       </div>
     </div>
-  </div>
 
-  <footer class="footer" id="footer"></footer>
+    <footer class="footer" id="footer"></footer>
 
-  <script src="js/db.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/app.js"></script>
-  <script src="js/navbar.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const jobId = urlParams.get('id');
-      
-      if (!jobId) {
-        window.location.href = 'index.html';
-        return;
-      }
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/navbar.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const jobId = urlParams.get("id");
 
-      const job = DB.getJobById(jobId);
-      if (!job) {
-        document.getElementById('jobDetail').innerHTML = `
+        if (!jobId) {
+          window.location.href = "index.html";
+          return;
+        }
+
+        const job = DB.getJobById(jobId);
+        if (!job) {
+          document.getElementById("jobDetail").innerHTML = `
           <div class="card text-center" style="padding: 60px;">
             <i class="fa-solid fa-circle-exclamation" style="font-size: 3rem; color: var(--danger); margin-bottom: 16px;"></i>
             <h2>Không tìm thấy công việc</h2>
@@ -54,25 +104,25 @@
             <a href="index.html" class="btn btn-primary">Quay lại trang chủ</a>
           </div>
         `;
-        return;
-      }
+          return;
+        }
 
-      // Tăng lượt xem (chỉ tăng nếu người xem không phải chủ sở hữu tin)
-      const currentUser = Auth.getCurrentUser();
-      if (!currentUser || currentUser.id !== job.createdBy) {
-        DB.incrementJobViews(jobId);
-      }
+        // Tăng lượt xem (chỉ tăng nếu người xem không phải chủ sở hữu tin)
+        const currentUser = Auth.getCurrentUser();
+        if (!currentUser || currentUser.id !== job.createdBy) {
+          DB.incrementJobViews(jobId);
+        }
 
-      document.title = `${job.title} — JobViệt`;
+        document.title = `${job.title} — JobViệt`;
 
-      document.getElementById('jobDetail').innerHTML = `
+        document.getElementById("jobDetail").innerHTML = `
         <div class="job-header animate-fade-up">
           <h1 style="font-size: 2rem; margin-bottom: 12px; color: var(--text);">${job.title}</h1>
           <div style="font-size: 1.2rem; color: var(--primary); font-weight: 600; margin-bottom: 20px;">${job.companyName}</div>
           <div class="grid grid-3">
             <div class="meta-item"><i class="fa-solid fa-location-dot text-danger"></i> ${job.location}</div>
             <div class="meta-item"><i class="fa-solid fa-money-bill-wave text-success"></i> ${job.salary}</div>
-            <div class="meta-item"><i class="fa-solid fa-clock text-info"></i> ${job.type === 'full-time' ? 'Toàn thời gian' : 'Bán thời gian'}</div>
+            <div class="meta-item"><i class="fa-solid fa-clock text-info"></i> ${job.type === "full-time" ? "Toàn thời gian" : "Bán thời gian"}</div>
           </div>
         </div>
 
@@ -87,27 +137,72 @@
           <p style="line-height: 1.8; color: var(--text); white-space: pre-line;">${job.benefits}</p>
 
           <div class="apply-section">
+            <button id="saveBtn" class="btn btn-large btn-outline" onclick="toggleSave('${job.id}')">
+              <i class="fa-regular fa-bookmark"></i> Lưu công việc
+            </button>
             <button class="btn btn-large btn-primary" onclick="applyJob('${job.id}')">
               <i class="fa-solid fa-paper-plane"></i> Ứng tuyển ngay
             </button>
           </div>
         </div>
       `;
-    });
 
-    function applyJob(id) {
-      const user = Auth.getCurrentUser();
-      if (!user) {
-        alert('Vui lòng đăng nhập để ứng tuyển!');
-        location.href = 'auth.html';
-        return;
+        // Kiểm tra trạng thái lưu
+        updateSaveButton(jobId);
+      });
+
+      function updateSaveButton(jobId) {
+        const user = Auth.getCurrentUser();
+        const saveBtn = document.getElementById("saveBtn");
+        if (!user || user.role !== "candidate") {
+          saveBtn.style.display = "none";
+          return;
+        }
+
+        const isSaved = DB.isJobSaved(user.id, jobId);
+        if (isSaved) {
+          saveBtn.classList.add("btn-saved");
+          saveBtn.innerHTML = '<i class="fa-solid fa-bookmark"></i> Đã lưu';
+        } else {
+          saveBtn.classList.remove("btn-saved");
+          saveBtn.innerHTML = '<i class="fa-regular fa-bookmark"></i> Lưu công việc';
+        }
       }
-      if (user.role !== 'candidate') {
-        alert('Chỉ ứng viên mới có thể ứng tuyển!');
-        return;
+
+      function toggleSave(jobId) {
+        const user = Auth.getCurrentUser();
+        if (!user) {
+          Toast.warning("Vui lòng đăng nhập để lưu công việc!");
+          return;
+        }
+        if (user.role !== "candidate") {
+          Toast.warning("Chỉ ứng viên mới có thể lưu công việc!");
+          return;
+        }
+
+        const isSaved = DB.toggleSaveJob(user.id, jobId);
+        updateSaveButton(jobId);
+
+        if (isSaved) {
+          Toast.success("Đã lưu công việc thành công!");
+        } else {
+          Toast.info("Đã bỏ lưu công việc");
+        }
       }
-      location.href = 'candidate/apply.html?jobId=' + id;
-    }
-  </script>
-</body>
+
+      function applyJob(id) {
+        const user = Auth.getCurrentUser();
+        if (!user) {
+          Toast.warning("Vui lòng đăng nhập để ứng tuyển!");
+          setTimeout(() => (location.href = "auth.html"), 2000);
+          return;
+        }
+        if (user.role !== "candidate") {
+          Toast.error("Chỉ ứng viên mới có thể ứng tuyển!");
+          return;
+        }
+        location.href = "candidate/apply.html?jobId=" + id;
+      }
+    </script>
+  </body>
 </html>

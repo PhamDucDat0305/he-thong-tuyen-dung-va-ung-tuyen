@@ -1,94 +1,124 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Thông tin cá nhân — JobViệt</title>
-  <link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/navbar.css">
-  <link rel="stylesheet" href="../css/pages/dashboard.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-</head>
-<body><div id="navbar-placeholder"></div>
-  <div class="layout-sidebar">
-    <aside class="sidebar" id="sidebar"></aside>
-    <main class="content-area">
-      <div class="content-header">
-        <h1><i class="fa-solid fa-user"></i> Thông tin cá nhân</h1>
-        <p>Quản lý hồ sơ và cập nhật thông tin liên hệ</p>
-      </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Thông tin cá nhân — JobViệt</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/pages/dashboard.css" />
+    <link rel="stylesheet" href="../css/pages/candidate.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="navbar-placeholder"></div>
+    <div class="layout-sidebar">
+      <aside class="sidebar" id="sidebar"></aside>
+      <main class="content-area">
+        <div class="content-header">
+          <h1><i class="fa-solid fa-user"></i> Thông tin cá nhân</h1>
+          <p>Quản lý hồ sơ và cập nhật thông tin liên hệ</p>
+        </div>
 
-      <div class="card animate-fade-up" style="max-width:600px">
-        <form onsubmit="updateAccount(event)">
-          <div class="flex flex-mobile-column" style="gap:20px; margin-bottom:24px; padding-bottom:24px; border-bottom:1px solid var(--border-light)">
-            <div id="avatarPreview" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#38bdf8);display:flex;align-items:center;justify-content:center;color:white;font-size:2rem;font-weight:bold;flex-shrink:0">U</div>
-            <div>
-              <h3 style="margin-bottom:8px" id="displayName">Người dùng</h3>
-              <p style="color:var(--text-light);font-size:0.9rem">Ảnh đại diện được tạo tự động từ tên của bạn.</p>
+        <div class="card card-account animate-fade-up">
+          <form onsubmit="updateAccount(event)">
+            <div class="flex flex-mobile-column avatar-preview-wrapper">
+              <div id="avatarPreview" class="avatar-initial">
+                U
+              </div>
+              <div>
+                <h3 style="margin-bottom: 8px" id="displayName">Người dùng</h3>
+                <p style="color: var(--text-light); font-size: 0.9rem">
+                  Ảnh đại diện được tạo tự động từ tên của bạn.
+                </p>
+              </div>
             </div>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Họ và tên</label>
-            <input class="form-input" id="fullName" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Email</label>
-            <input class="form-input" type="email" id="email" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Số điện thoại</label>
-            <input class="form-input" type="tel" id="phone" placeholder="09xxxx">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Tên đăng nhập (Username)</label>
-            <input class="form-input" id="username" disabled style="background:#f1f5f9; cursor:not-allowed">
-            <small style="color:var(--text-light);display:block;margin-top:4px">Không thể thay đổi tên đăng nhập</small>
-          </div>
-          <div class="form-group" style="margin-top:24px">
-            <button type="submit" class="btn btn-primary btn-large w-100"><i class="fa-solid fa-floppy-disk"></i> Cập nhật thông tin</button>
-          </div>
-        </form>
-      </div>
-    </main>
-  </div>
-  <script src="../js/db.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/notifications.js"></script>
-  <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
-  <script>
-    const user = Auth.requireAuth(['candidate']);
-    if (!user) throw 'redirect';
-    App.renderSidebar('candidate', 'account');
 
-    // Load data
-    document.getElementById('fullName').value = user.fullName;
-    document.getElementById('email').value = user.email || '';
-    document.getElementById('username').value = user.username;
-    document.getElementById('displayName').textContent = user.fullName;
-    document.getElementById('avatarPreview').textContent = user.fullName[0].toUpperCase();
+            <div class="form-group">
+              <label class="form-label">Họ và tên</label>
+              <input class="form-input" id="fullName" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" type="email" id="email" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Số điện thoại</label>
+              <input
+                class="form-input"
+                type="tel"
+                id="phone"
+                placeholder="09xxxx"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tên đăng nhập (Username)</label>
+              <input
+                class="form-input username-disabled"
+                id="username"
+                disabled
+              />
+              <small
+                style="
+                  color: var(--text-light);
+                  display: block;
+                  margin-top: 4px;
+                "
+                >Không thể thay đổi tên đăng nhập</small
+              >
+            </div>
+            <div class="form-group" style="margin-top: 24px">
+              <button type="submit" class="btn btn-primary btn-large w-100">
+                <i class="fa-solid fa-floppy-disk"></i> Cập nhật thông tin
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+    <script src="../js/db.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+      const user = Auth.requireAuth(["candidate"]);
+      if (!user) throw "redirect";
+      App.renderSidebar("candidate", "account");
 
-    function updateAccount(e) {
-      e.preventDefault();
-      const newName = document.getElementById('fullName').value.trim();
-      const newEmail = document.getElementById('email').value.trim();
+      // Load data
+      document.getElementById("fullName").value = user.fullName;
+      document.getElementById("email").value = user.email || "";
+      document.getElementById("username").value = user.username;
+      document.getElementById("displayName").textContent = user.fullName;
+      document.getElementById("avatarPreview").textContent =
+        user.fullName[0].toUpperCase();
 
-      const users = JSON.parse(localStorage.getItem('users')) || [];
-      const idx = users.findIndex(u => u.id === user.id);
-      if(idx >= 0) {
-        users[idx].fullName = newName;
-        users[idx].email = newEmail;
-        localStorage.setItem('users', JSON.stringify(users));
+      function updateAccount(e) {
+        e.preventDefault();
+        const newName = document.getElementById("fullName").value.trim();
+        const newEmail = document.getElementById("email").value.trim();
 
-        user.fullName = newName;
-        user.email = newEmail;
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        if(sessionStorage.getItem('loggedInUser')) sessionStorage.setItem('loggedInUser', JSON.stringify(user));
+        const users = JSON.parse(localStorage.getItem("users")) || [];
+        const idx = users.findIndex((u) => u.id === user.id);
+        if (idx >= 0) {
+          users[idx].fullName = newName;
+          users[idx].email = newEmail;
+          localStorage.setItem("users", JSON.stringify(users));
 
-        Toast.success('Cập nhật thông tin thành công!');
-        setTimeout(() => location.reload(), 1000);
+          user.fullName = newName;
+          user.email = newEmail;
+          localStorage.setItem("currentUser", JSON.stringify(user));
+          if (sessionStorage.getItem("loggedInUser"))
+            sessionStorage.setItem("loggedInUser", JSON.stringify(user));
+
+          Toast.success("Cập nhật thông tin thành công!");
+          setTimeout(() => location.reload(), 1000);
+        }
       }
-    }
-  </script>
-</body>
+    </script>
+  </body>
 </html>
-

@@ -4,16 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>Sửa công ty — JobViệt</title>
-    <link rel="stylesheet" href="../css/styles.css" /><link rel="stylesheet" href="../css/navbar.css">
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
     <link rel="stylesheet" href="../css/pages/dashboard.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/pages/employer.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
   </head>
-  <body><div id="navbar-placeholder"></div>
+  <body>
+    <div id="navbar-placeholder"></div>
     <div class="layout-sidebar">
       <aside class="sidebar" id="sidebar"></aside>
       <main class="content-area">
-        <div class="content-header"><h1><i class="fa-solid fa-pen-to-square"></i> Sửa thông tin công ty</h1></div>
-        <div class="card" style="padding: 32px; max-width: 700px">
+        <div class="content-header">
+          <h1>
+            <i class="fa-solid fa-pen-to-square"></i> Sửa thông tin công ty
+          </h1>
+        </div>
+        <div class="card card-employer-form">
           <form onsubmit="saveCompany(event)">
             <div class="form-group">
               <label class="form-label">Tên công ty</label
@@ -58,7 +68,9 @@
             <div class="flex" style="gap: 12px">
               <button type="submit" class="btn btn-primary btn-large">
                 <i class="fa-solid fa-floppy-disk"></i> Lưu</button
-              ><a href="company-profile.html" class="btn btn-secondary btn-large"
+              ><a
+                href="company-profile.html"
+                class="btn btn-secondary btn-large"
                 >Hủy</a
               >
             </div>
@@ -69,7 +81,8 @@
     <script src="../js/db.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/notifications.js"></script>
-    <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/navbar.js"></script>
     <script>
       const user = Auth.requireAuth(["employer"]);
       if (!user) throw "r";
@@ -100,5 +113,3 @@
     </script>
   </body>
 </html>
-
-

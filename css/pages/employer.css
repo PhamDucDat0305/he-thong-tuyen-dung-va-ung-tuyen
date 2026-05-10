@@ -1,1 +1,110 @@
-/* CSS toàn cục cho phân hệ employer */
+/* ========== EMPLOYER MODULE STYLES ========== */
+
+/* Dashboard Lists */
+.dashboard-list-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.dashboard-list-item:last-child {
+  border-bottom: none;
+}
+
+.item-title {
+  font-weight: 600;
+}
+
+.item-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-light);
+}
+
+/* Forms & Cards */
+.card-employer-form {
+  padding: 32px !important;
+  max-width: 800px;
+}
+
+.btn-full {
+  width: 100% !important;
+}
+
+.mt-2 {
+  margin-top: 16px !important;
+}
+
+/* Applicant / Candidate List */
+.applicant-card {
+  padding: 24px !important;
+}
+
+.applicant-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), #38bdf8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.applicant-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.applicant-meta {
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+
+.cv-content-box {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--bg-light);
+  border-radius: var(--radius);
+  line-height: 1.7;
+  border: 1px solid var(--border-light);
+}
+
+.cv-label {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  font-weight: 700;
+}
+
+.cv-text {
+  margin-top: 6px;
+  white-space: pre-line;
+}
+
+/* Interview Scheduling */
+.interview-form-inline {
+  display: none;
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--bg);
+  border: 1px dashed var(--primary);
+  border-radius: 8px;
+}
+
+.form-label-sm {
+  font-size: 0.8rem !important;
+}
+
+/* Company Profile */
+.company-logo-preview {
+  width: 100px;
+  height: 100px;
+  border-radius: 12px;
+  background: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: white;
+  margin-bottom: 16px;
+}

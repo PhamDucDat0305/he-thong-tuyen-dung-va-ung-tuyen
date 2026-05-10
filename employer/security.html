@@ -1,101 +1,122 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Cài đặt bảo mật — JobViệt</title>
-  <link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/navbar.css">
-  <link rel="stylesheet" href="../css/pages/dashboard.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-</head>
-<body><div id="navbar-placeholder"></div>
-  <div class="layout-sidebar">
-    <aside class="sidebar" id="sidebar"></aside>
-    <main class="content-area">
-      <div class="content-header">
-        <h1><i class="fa-solid fa-shield-halved"></i> Cài đặt bảo mật</h1>
-        <p>Kiểm soát quyền truy cập và hoạt động tài khoản</p>
-      </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Cài đặt bảo mật — JobViệt</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/pages/dashboard.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="navbar-placeholder"></div>
+    <div class="layout-sidebar">
+      <aside class="sidebar" id="sidebar"></aside>
+      <main class="content-area">
+        <div class="content-header">
+          <h1><i class="fa-solid fa-shield-halved"></i> Cài đặt bảo mật</h1>
+          <p>Kiểm soát quyền truy cập và hoạt động tài khoản</p>
+        </div>
 
-      <div class="card animate-fade-up">
-        <h3 class="mb-2">Bảo mật hai lớp (2FA)</h3>
-        <div class="flex-between" style="padding-bottom:16px; border-bottom:1px solid var(--border-light)">
-          <div>
-            <p style="font-weight:600">Xác thực qua Email</p>
-            <p style="color:var(--text-light); font-size:0.9rem">Nhận mã OTP qua email mỗi khi đăng nhập từ thiết bị lạ.</p>
+        <div class="card animate-fade-up">
+          <h3 class="mb-2">Bảo mật hai lớp (2FA)</h3>
+          <div
+            class="flex-between"
+            style="
+              padding-bottom: 16px;
+              border-bottom: 1px solid var(--border-light);
+            "
+          >
+            <div>
+              <p style="font-weight: 600">Xác thực qua Email</p>
+              <p style="color: var(--text-light); font-size: 0.9rem">
+                Nhận mã OTP qua email mỗi khi đăng nhập từ thiết bị lạ.
+              </p>
+            </div>
+            <button class="btn btn-outline" id="btn2FA" onclick="toggle2FA()">
+              Bật 2FA
+            </button>
           </div>
-          <button class="btn btn-outline" id="btn2FA" onclick="toggle2FA()">Bật 2FA</button>
         </div>
-      </div>
 
-      <div class="card animate-fade-up" style="animation-delay: 0.2s">
-        <h3 class="mb-2">Lịch sử đăng nhập</h3>
-        <div class="table-wrapper">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Thiết bị / Trình duyệt</th>
-                <th>Địa chỉ IP</th>
-                <th>Thời gian</th>
-                <th>Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Chrome trên Windows</strong></td>
-                <td>192.168.1.1</td>
-                <td>Vừa xong (Hiện tại)</td>
-                <td><span class="badge badge-success">Thành công</span></td>
-              </tr>
-              <tr>
-                <td><strong>Safari trên iPhone 13</strong></td>
-                <td>115.79.x.x</td>
-                <td>Hôm qua, 15:30</td>
-                <td><span class="badge badge-success">Thành công</span></td>
-              </tr>
-              <tr>
-                <td><strong>Firefox trên Mac OS</strong></td>
-                <td>14.161.x.x</td>
-                <td>3 ngày trước</td>
-                <td><span class="badge badge-danger">Thất bại (Sai mật khẩu)</span></td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="card animate-fade-up" style="animation-delay: 0.2s">
+          <h3 class="mb-2">Lịch sử đăng nhập</h3>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Thiết bị / Trình duyệt</th>
+                  <th>Địa chỉ IP</th>
+                  <th>Thời gian</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Chrome trên Windows</strong></td>
+                  <td>192.168.1.1</td>
+                  <td>Vừa xong (Hiện tại)</td>
+                  <td><span class="badge badge-success">Thành công</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Safari trên iPhone 13</strong></td>
+                  <td>115.79.x.x</td>
+                  <td>Hôm qua, 15:30</td>
+                  <td><span class="badge badge-success">Thành công</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Firefox trên Mac OS</strong></td>
+                  <td>14.161.x.x</td>
+                  <td>3 ngày trước</td>
+                  <td>
+                    <span class="badge badge-danger"
+                      >Thất bại (Sai mật khẩu)</span
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-    </main>
-  </div>
-  <script src="../js/db.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/notifications.js"></script>
-  <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
-  <script>
-    const user = Auth.requireAuth(['employer']);
-    if (!user) throw 'redirect';
-    App.renderSidebar('employer', 'security');
+      </main>
+    </div>
+    <script src="../js/db.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+      const user = Auth.requireAuth(["employer"]);
+      if (!user) throw "redirect";
+      App.renderSidebar("employer", "security");
 
-    let is2FA = localStorage.getItem('2FA_enabled_' + user.id) === 'true';
-    const btn = document.getElementById('btn2FA');
-    
-    function updateBtn() {
-      if(is2FA) {
-        btn.textContent = 'Tắt 2FA';
-        btn.classList.replace('btn-outline', 'btn-danger');
-      } else {
-        btn.textContent = 'Bật 2FA';
-        btn.classList.replace('btn-danger', 'btn-outline');
+      let is2FA = localStorage.getItem("2FA_enabled_" + user.id) === "true";
+      const btn = document.getElementById("btn2FA");
+
+      function updateBtn() {
+        if (is2FA) {
+          btn.textContent = "Tắt 2FA";
+          btn.classList.replace("btn-outline", "btn-danger");
+        } else {
+          btn.textContent = "Bật 2FA";
+          btn.classList.replace("btn-danger", "btn-outline");
+        }
       }
-    }
-    
-    updateBtn();
 
-    function toggle2FA() {
-      is2FA = !is2FA;
-      localStorage.setItem('2FA_enabled_' + user.id, is2FA);
       updateBtn();
-      Toast.success(is2FA ? 'Đã bật xác thực 2 lớp' : 'Đã tắt xác thực 2 lớp');
-    }
-  </script>
-</body>
-</html>
 
+      function toggle2FA() {
+        is2FA = !is2FA;
+        localStorage.setItem("2FA_enabled_" + user.id, is2FA);
+        updateBtn();
+        Toast.success(
+          is2FA ? "Đã bật xác thực 2 lớp" : "Đã tắt xác thực 2 lớp",
+        );
+      }
+    </script>
+  </body>
+</html>

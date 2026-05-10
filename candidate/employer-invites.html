@@ -1,77 +1,91 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Lời mời kết nối — JobViệt</title>
-  <link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/navbar.css">
-  <link rel="stylesheet" href="../css/pages/dashboard.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-</head>
-<body><div id="navbar-placeholder"></div>
-  <div class="layout-sidebar">
-    <aside class="sidebar" id="sidebar"></aside>
-    <main class="content-area">
-      <div class="content-header">
-        <h1>🤝 Nhà tuyển dụng muốn kết nối</h1>
-        <p>Danh sách các lời mời phỏng vấn và ứng tuyển từ phía doanh nghiệp</p>
-      </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Lời mời kết nối — JobViệt</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/pages/dashboard.css" />
+    <link rel="stylesheet" href="../css/pages/candidate.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="navbar-placeholder"></div>
+    <div class="layout-sidebar">
+      <aside class="sidebar" id="sidebar"></aside>
+      <main class="content-area">
+        <div class="content-header">
+          <h1>🤝 Nhà tuyển dụng muốn kết nối</h1>
+          <p>
+            Danh sách các lời mời phỏng vấn và ứng tuyển từ phía doanh nghiệp
+          </p>
+        </div>
 
-      <div class="table-wrapper animate-fade-up">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Công ty</th>
-              <th>Vị trí đề xuất</th>
-              <th>Ngày gửi</th>
-              <th>Trạng thái</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <div class="flex" style="gap:12px">
-                  <div class="avatar" style="width:40px;height:40px;border-radius:8px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold">T</div>
-                  <div><strong>Techcombank</strong></div>
-                </div>
-              </td>
-              <td>Senior Frontend Developer</td>
-              <td>Hôm nay</td>
-              <td><span class="badge badge-warning">Chờ phản hồi</span></td>
-              <td>
-                <button class="btn btn-sm btn-primary">Chấp nhận</button>
-                <button class="btn btn-sm btn-light">Từ chối</button>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <div class="flex" style="gap:12px">
-                  <div class="avatar" style="width:40px;height:40px;border-radius:8px;background:#10B981;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold">V</div>
-                  <div><strong>VNG Corporation</strong></div>
-                </div>
-              </td>
-              <td>React Developer</td>
-              <td>3 ngày trước</td>
-              <td><span class="badge badge-success">Đã đồng ý</span></td>
-              <td>
-                <button class="btn btn-sm btn-light" disabled>Đã xử lý</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </main>
-  </div>
-  <script src="../js/db.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/notifications.js"></script>
-  <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
-  <script>
-    const user = Auth.requireAuth(['candidate']);
-    if (!user) throw 'redirect';
-    App.renderSidebar('candidate', 'invites');
-  </script>
-</body>
+        <div class="table-wrapper animate-fade-up">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Công ty</th>
+                <th>Vị trí đề xuất</th>
+                <th>Ngày gửi</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="flex" style="gap: 12px">
+                    <div class="avatar-initial-sm">
+                      T
+                    </div>
+                    <div><strong>Techcombank</strong></div>
+                  </div>
+                </td>
+                <td>Senior Frontend Developer</td>
+                <td>Hôm nay</td>
+                <td><span class="badge badge-warning">Chờ phản hồi</span></td>
+                <td>
+                  <button class="btn btn-sm btn-primary">Chấp nhận</button>
+                  <button class="btn btn-sm btn-light">Từ chối</button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="flex" style="gap: 12px">
+                    <div class="avatar-initial-sm" style="background: #10b981;">
+                      V
+                    </div>
+                    <div><strong>VNG Corporation</strong></div>
+                  </div>
+                </td>
+                <td>React Developer</td>
+                <td>3 ngày trước</td>
+                <td><span class="badge badge-success">Đã đồng ý</span></td>
+                <td>
+                  <button class="btn btn-sm btn-light" disabled>
+                    Đã xử lý
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+    <script src="../js/db.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+      const user = Auth.requireAuth(["candidate"]);
+      if (!user) throw "redirect";
+      App.renderSidebar("candidate", "invites");
+    </script>
+  </body>
 </html>
-

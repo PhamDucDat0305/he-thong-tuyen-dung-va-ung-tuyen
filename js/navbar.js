@@ -30,8 +30,10 @@
   }
 
   function resolveHref(path) {
-    const inSubfolder = location.pathname.includes('/employer/') || location.pathname.includes('/candidate/');
-    return inSubfolder ? '../' + path : path;
+    const inSubfolder =
+      location.pathname.includes("/employer/") ||
+      location.pathname.includes("/candidate/");
+    return inSubfolder ? "../" + path : path;
   }
   /* ══════════════════════════════════════════════════════════
      MENU DATA  — edit here to add / remove items
@@ -43,36 +45,76 @@
       {
         label: "Tổng quan",
         items: [
-          { icon: "fa-chart-pie", text: "Dashboard", href: resolveHref("candidate/dashboard.html") },
+          {
+            icon: "fa-chart-pie",
+            text: "Dashboard",
+            href: resolveHref("candidate/dashboard.html"),
+          },
         ],
       },
       {
         label: "Quản lý tìm việc",
         items: [
-          { icon: "fa-bookmark", text: "Việc làm đã lưu", href: resolveHref("candidate/saved-jobs.html") },
-          { icon: "fa-paper-plane", text: "Việc làm đã ứng tuyển", href: resolveHref("candidate/my-applications.html") },
-          { icon: "fa-circle-check", text: "Việc làm trúng tuyển", href: resolveHref("candidate/accepted-jobs.html") },
+          {
+            icon: "fa-bookmark",
+            text: "Việc làm đã lưu",
+            href: resolveHref("candidate/saved-jobs.html"),
+          },
+          {
+            icon: "fa-paper-plane",
+            text: "Việc làm đã ứng tuyển",
+            href: resolveHref("candidate/my-applications.html"),
+          },
+          {
+            icon: "fa-circle-check",
+            text: "Việc làm trúng tuyển",
+            href: resolveHref("candidate/accepted-jobs.html"),
+          },
         ],
       },
       {
         label: "Quản lý CV & Cover letter",
         items: [
-          { icon: "fa-file-lines", text: "CV của tôi", href: resolveHref("candidate/my-cv.html") },
-          { icon: "fa-envelope-open-text", text: "Cover Letter của tôi", href: resolveHref("candidate/cover-letter.html") },
+          {
+            icon: "fa-file-lines",
+            text: "CV của tôi",
+            href: resolveHref("candidate/my-cv.html"),
+          },
+          {
+            icon: "fa-envelope-open-text",
+            text: "Cover Letter của tôi",
+            href: resolveHref("candidate/cover-letter.html"),
+          },
         ],
       },
       {
         label: "Tương tác với nhà tuyển dụng",
         items: [
-          { icon: "fa-handshake", text: "Nhà tuyển dụng muốn kết nối", href: resolveHref("candidate/employer-invites.html") },
-          { icon: "fa-eye", text: "Nhà tuyển dụng xem hồ sơ", href: resolveHref("candidate/profile-views.html") },
+          {
+            icon: "fa-handshake",
+            text: "Nhà tuyển dụng muốn kết nối",
+            href: resolveHref("candidate/employer-invites.html"),
+          },
+          {
+            icon: "fa-eye",
+            text: "Nhà tuyển dụng xem hồ sơ",
+            href: resolveHref("candidate/profile-views.html"),
+          },
         ],
       },
       {
         label: "Cá nhân & Bảo mật",
         items: [
-          { icon: "fa-user-pen", text: "Thông tin cá nhân", href: resolveHref("candidate/account.html") },
-          { icon: "fa-shield-halved", text: "Cài đặt bảo mật", href: resolveHref("candidate/security.html") },
+          {
+            icon: "fa-user-pen",
+            text: "Thông tin cá nhân",
+            href: resolveHref("candidate/account.html"),
+          },
+          {
+            icon: "fa-shield-halved",
+            text: "Cài đặt bảo mật",
+            href: resolveHref("candidate/security.html"),
+          },
         ],
       },
     ],
@@ -107,11 +149,31 @@
       {
         label: "Quản lý ứng viên",
         items: [
-          { icon: "fa-users", text: "Danh sách ứng viên", href: resolveHref("employer/applicants.html") },
-          { icon: "fa-user-check", text: "Ứng viên đã ứng tuyển", href: resolveHref("employer/applied-candidates.html") },
-          { icon: "fa-calendar-check", text: "Lịch phỏng vấn", href: resolveHref("employer/interviews.html") },
-          { icon: "fa-circle-check", text: "Ứng viên đã trúng tuyển", href: resolveHref("employer/accepted-candidates.html") },
-          { icon: "fa-heart", text: "Ứng viên đã lưu", href: resolveHref("employer/saved-candidates.html") },
+          {
+            icon: "fa-users",
+            text: "Danh sách ứng viên",
+            href: resolveHref("employer/applicants.html"),
+          },
+          {
+            icon: "fa-user-check",
+            text: "Ứng viên đã ứng tuyển",
+            href: resolveHref("employer/applied-candidates.html"),
+          },
+          {
+            icon: "fa-calendar-check",
+            text: "Lịch phỏng vấn",
+            href: resolveHref("employer/interviews.html"),
+          },
+          {
+            icon: "fa-circle-check",
+            text: "Ứng viên đã trúng tuyển",
+            href: resolveHref("employer/accepted-candidates.html"),
+          },
+          {
+            icon: "fa-heart",
+            text: "Ứng viên đã lưu",
+            href: resolveHref("employer/saved-candidates.html"),
+          },
         ],
       },
       {
@@ -132,16 +194,36 @@
       {
         label: "Báo cáo & thống kê",
         items: [
-          { icon: "fa-chart-line", text: "Lượt xem tin", href: resolveHref("employer/stats-views.html") },
-          { icon: "fa-chart-pie", text: "Hiệu quả tuyển dụng", href: resolveHref("employer/stats-performance.html") },
+          {
+            icon: "fa-chart-line",
+            text: "Lượt xem tin",
+            href: resolveHref("employer/stats-views.html"),
+          },
+          {
+            icon: "fa-chart-pie",
+            text: "Hiệu quả tuyển dụng",
+            href: resolveHref("employer/stats-performance.html"),
+          },
         ],
       },
       {
         label: "Cá nhân & Bảo mật",
         items: [
-          { icon: "fa-id-card", text: "Thông tin tài khoản", href: resolveHref("employer/account.html") },
-          { icon: "fa-key", text: "Đổi mật khẩu", href: resolveHref("employer/password.html") },
-          { icon: "fa-shield-halved", text: "Cài đặt bảo mật", href: resolveHref("employer/security.html") },
+          {
+            icon: "fa-id-card",
+            text: "Thông tin tài khoản",
+            href: resolveHref("employer/account.html"),
+          },
+          {
+            icon: "fa-key",
+            text: "Đổi mật khẩu",
+            href: resolveHref("employer/password.html"),
+          },
+          {
+            icon: "fa-shield-halved",
+            text: "Cài đặt bảo mật",
+            href: resolveHref("employer/security.html"),
+          },
         ],
       },
     ],
@@ -352,10 +434,10 @@
       logoutBtn.addEventListener("click", () => {
         sessionStorage.removeItem("loggedInUser");
         localStorage.removeItem("currentUser");
-        
-        const stayPages = ['contact.html', 'about.html', 'job-list.html'];
-        const currentPage = location.pathname.split('/').pop() || 'index.html';
-        
+
+        const stayPages = ["contact.html", "about.html", "job-list.html"];
+        const currentPage = location.pathname.split("/").pop() || "index.html";
+
         if (stayPages.includes(currentPage)) {
           // Stay and refresh navbar
           const oldNav = document.getElementById("navbar");
@@ -367,7 +449,7 @@
           }
         } else {
           // Redirect to home
-          location.href = resolveHref('index.html');
+          location.href = resolveHref("index.html");
         }
       });
     }

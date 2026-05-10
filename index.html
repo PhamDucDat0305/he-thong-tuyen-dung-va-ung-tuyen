@@ -6,7 +6,10 @@
     <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="css/navbar.css" />
     <link rel="stylesheet" href="css/pages/home.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
 
     <title>Tìm Việc Làm</title>
   </head>
@@ -69,7 +72,10 @@
           <!-- Featured Jobs -->
           <div class="section-header">
             <div>
-              <h2><i class="fa-solid fa-briefcase text-primary"></i> Việc làm nổi bật</h2>
+              <h2>
+                <i class="fa-solid fa-briefcase text-primary"></i> Việc làm nổi
+                bật
+              </h2>
               <p class="section-desc">
                 Các cơ hội mới nhất từ nhà tuyển dụng uy tín
               </p>
@@ -81,7 +87,10 @@
 
           <!-- Categories -->
           <div class="categories text-center">
-            <h2><i class="fa-solid fa-folder-open text-warning"></i> Danh mục phổ biến</h2>
+            <h2>
+              <i class="fa-solid fa-folder-open text-warning"></i> Danh mục phổ
+              biến
+            </h2>
             <p class="section-desc mb">Khám phá việc làm theo lĩnh vực</p>
 
             <div class="grid grid-4" id="categories"></div>
@@ -97,7 +106,8 @@
 
             <div class="cta-buttons">
               <a href="auth.html" class="btn btn-large btn-light">
-                <i class="fa-solid fa-user-graduate text-primary"></i> Tìm việc ngay
+                <i class="fa-solid fa-user-graduate text-primary"></i> Tìm việc
+                ngay
               </a>
 
               <a href="auth.html" class="btn btn-large btn-outline-light">
@@ -118,43 +128,63 @@
     <script>
       // Khởi tạo các giá trị thống kê
       document.addEventListener("DOMContentLoaded", () => {
-        if (typeof DB !== 'undefined') {
+        if (typeof DB !== "undefined") {
           const jobs = DB.getJobs();
           const users = DB.getUsers();
-          
+
           document.getElementById("statJobs").textContent = jobs.length;
-          document.getElementById("statCompanies").textContent = new Set(jobs.map(j => j.companyName)).size;
-          document.getElementById("statUsers").textContent = users.filter(u => u.role === 'candidate').length;
-          
+          document.getElementById("statCompanies").textContent = new Set(
+            jobs.map((j) => j.companyName),
+          ).size;
+          document.getElementById("statUsers").textContent = users.filter(
+            (u) => u.role === "candidate",
+          ).length;
+
           // Render Featured Jobs
           App.renderFeaturedJobs();
         }
 
         // Cập nhật link CTA tuỳ theo trạng thái đăng nhập
-        if (typeof Auth !== 'undefined') {
+        if (typeof Auth !== "undefined") {
           const user = Auth.getCurrentUser();
           if (user) {
-            const btnTimViec = document.querySelector('a[href="auth.html"].btn-light');
-            const btnDangTuyen = document.querySelector('a[href="auth.html"].btn-outline-light');
-            
+            const btnTimViec = document.querySelector(
+              'a[href="auth.html"].btn-light',
+            );
+            const btnDangTuyen = document.querySelector(
+              'a[href="auth.html"].btn-outline-light',
+            );
+
             if (btnTimViec) {
-              btnTimViec.href = user.role === 'candidate' ? 'job-list.html' : 'auth.html';
-              if (user.role !== 'candidate') btnTimViec.onclick = (e) => { e.preventDefault(); alert('Bạn đang đăng nhập bằng tài khoản Nhà tuyển dụng!'); };
+              btnTimViec.href =
+                user.role === "candidate" ? "job-list.html" : "auth.html";
+              if (user.role !== "candidate")
+                btnTimViec.onclick = (e) => {
+                  e.preventDefault();
+                  alert("Bạn đang đăng nhập bằng tài khoản Nhà tuyển dụng!");
+                };
             }
             if (btnDangTuyen) {
-              btnDangTuyen.href = user.role === 'employer' ? 'employer/post-job.html' : 'auth.html';
-              if (user.role !== 'employer') btnDangTuyen.onclick = (e) => { e.preventDefault(); alert('Bạn đang đăng nhập bằng tài khoản Ứng viên!'); };
+              btnDangTuyen.href =
+                user.role === "employer"
+                  ? "employer/post-job.html"
+                  : "auth.html";
+              if (user.role !== "employer")
+                btnDangTuyen.onclick = (e) => {
+                  e.preventDefault();
+                  alert("Bạn đang đăng nhập bằng tài khoản Ứng viên!");
+                };
             }
           }
         }
       });
 
       // Hàm cho thanh tìm kiếm ở Hero Section
-      window.searchFromHero = function() {
+      window.searchFromHero = function () {
         // Có thể phát triển tính năng auto-suggest ở đây nếu cần
       };
 
-      window.goToSearch = function() {
+      window.goToSearch = function () {
         const query = document.getElementById("heroSearch").value.trim();
         if (query) {
           window.location.href = "job-list.html?q=" + encodeURIComponent(query);

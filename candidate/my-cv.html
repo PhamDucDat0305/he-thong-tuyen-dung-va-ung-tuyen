@@ -1,67 +1,95 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>CV của tôi — JobViệt</title>
-  <link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/navbar.css">
-  <link rel="stylesheet" href="../css/pages/dashboard.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-</head>
-<body><div id="navbar-placeholder"></div>
-  <div class="layout-sidebar">
-    <aside class="sidebar" id="sidebar"></aside>
-    <main class="content-area">
-      <div class="content-header flex-between">
-        <div>
-          <h1><i class="fa-solid fa-file-lines"></i> CV của tôi</h1>
-          <p>Quản lý hồ sơ CV để ứng tuyển nhanh chóng</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>CV của tôi — JobViệt</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/pages/dashboard.css" />
+    <link rel="stylesheet" href="../css/pages/candidate.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="navbar-placeholder"></div>
+    <div class="layout-sidebar">
+      <aside class="sidebar" id="sidebar"></aside>
+      <main class="content-area">
+        <div class="content-header flex-between">
+          <div>
+            <h1><i class="fa-solid fa-file-lines"></i> CV của tôi</h1>
+            <p>Quản lý hồ sơ CV để ứng tuyển nhanh chóng</p>
+          </div>
+          <button
+            class="btn btn-primary"
+            onclick="Toast.info('Đang mở form tạo CV mới')"
+          >
+            + Tạo CV Mới
+          </button>
         </div>
-        <button class="btn btn-primary" onclick="Toast.info('Đang mở form tạo CV mới')">+ Tạo CV Mới</button>
-      </div>
 
-      <div class="grid grid-3 stagger" id="cvList">
-        <div class="card animate-fade-up">
-          <div style="height:120px;background:#f8fafc;border-radius:8px;margin-bottom:16px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
-            <span style="font-size:3rem">📄</span>
+        <div class="grid grid-3 stagger" id="cvList">
+          <div class="card animate-fade-up">
+            <div class="cv-preview-box">
+              <span class="cv-preview-icon">📄</span>
+            </div>
+            <h3 class="cv-title">
+              CV Frontend Developer
+            </h3>
+            <p class="cv-meta">
+              Cập nhật lần cuối: Hôm nay
+            </p>
+            <div class="flex-between">
+              <span class="badge badge-success">Mặc định</span>
+              <div class="flex" style="gap: 8px">
+                <button class="btn btn-sm btn-outline" title="Chỉnh sửa">
+                  ✏️
+                </button>
+                <button class="btn btn-sm btn-danger" title="Xóa">🗑️</button>
+              </div>
+            </div>
           </div>
-          <h3 style="font-size:1.1rem;margin-bottom:8px">CV Frontend Developer</h3>
-          <p style="color:var(--text-light);font-size:0.85rem;margin-bottom:16px">Cập nhật lần cuối: Hôm nay</p>
-          <div class="flex-between">
-            <span class="badge badge-success">Mặc định</span>
-            <div class="flex" style="gap:8px">
-              <button class="btn btn-sm btn-outline" title="Chỉnh sửa">✏️</button>
-              <button class="btn btn-sm btn-danger" title="Xóa">🗑️</button>
+
+          <div class="card animate-fade-up">
+            <div class="cv-preview-box">
+              <span class="cv-preview-icon">📄</span>
+            </div>
+            <h3 class="cv-title">
+              CV UI/UX Design
+            </h3>
+            <p class="cv-meta">
+              Cập nhật lần cuối: 2 tuần trước
+            </p>
+            <div class="flex-between">
+              <button
+                class="btn btn-sm btn-light"
+                onclick="Toast.success('Đã đặt làm CV mặc định')"
+              >
+                Đặt mặc định
+              </button>
+              <div class="flex" style="gap: 8px">
+                <button class="btn btn-sm btn-outline" title="Chỉnh sửa">
+                  ✏️
+                </button>
+                <button class="btn btn-sm btn-danger" title="Xóa">🗑️</button>
+              </div>
             </div>
           </div>
         </div>
-        
-        <div class="card animate-fade-up">
-          <div style="height:120px;background:#f8fafc;border-radius:8px;margin-bottom:16px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
-            <span style="font-size:3rem">📄</span>
-          </div>
-          <h3 style="font-size:1.1rem;margin-bottom:8px">CV UI/UX Design</h3>
-          <p style="color:var(--text-light);font-size:0.85rem;margin-bottom:16px">Cập nhật lần cuối: 2 tuần trước</p>
-          <div class="flex-between">
-            <button class="btn btn-sm btn-light" onclick="Toast.success('Đã đặt làm CV mặc định')">Đặt mặc định</button>
-            <div class="flex" style="gap:8px">
-              <button class="btn btn-sm btn-outline" title="Chỉnh sửa">✏️</button>
-              <button class="btn btn-sm btn-danger" title="Xóa">🗑️</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
-  <script src="../js/db.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/notifications.js"></script>
-  <script src="../js/app.js"></script><script src="../js/navbar.js"></script>
-  <script>
-    const user = Auth.requireAuth(['candidate']);
-    if (!user) throw 'redirect';
-    App.renderSidebar('candidate', 'my_cv');
-  </script>
-</body>
+      </main>
+    </div>
+    <script src="../js/db.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/navbar.js"></script>
+    <script>
+      const user = Auth.requireAuth(["candidate"]);
+      if (!user) throw "redirect";
+      App.renderSidebar("candidate", "my_cv");
+    </script>
+  </body>
 </html>
-
