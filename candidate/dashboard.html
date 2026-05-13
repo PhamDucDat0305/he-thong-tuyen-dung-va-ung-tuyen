@@ -3,6 +3,79 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="apple-touch-icon"
+      sizes="57x57"
+      href="../ico//apple-icon-57x57.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="60x60"
+      href="../ico//apple-icon-60x60.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="72x72"
+      href="../ico//apple-icon-72x72.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="76x76"
+      href="../ico//apple-icon-76x76.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="114x114"
+      href="../ico//apple-icon-114x114.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="120x120"
+      href="../ico//apple-icon-120x120.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="144x144"
+      href="../ico//apple-icon-144x144.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="152x152"
+      href="../ico//apple-icon-152x152.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="../ico//apple-icon-180x180.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="../ico//android-icon-192x192.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="../ico//favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="96x96"
+      href="../ico//favicon-96x96.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="../ico//favicon-16x16.png"
+    />
+    <link rel="manifest" href="../ico//manifest.json" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="./ico/ms-icon-144x144.png" />
+    <meta name="theme-color" content="#ffffff" />
     <title>Dashboard Ứng viên — JobViệt</title>
     <link rel="stylesheet" href="../css/styles.css" />
     <link rel="stylesheet" href="../css/navbar.css" />
@@ -27,10 +100,13 @@
           <div class="grid grid-2 mt-3">
             <div>
               <h3 class="mb-2">
-                <i class="fa-solid fa-calendar-check text-indigo"></i> Lịch phỏng vấn sắp tới
+                <i class="fa-solid fa-calendar-check text-indigo"></i> Lịch
+                phỏng vấn sắp tới
               </h3>
               <div id="upcomingInterviews"></div>
-              <a href="interviews.html" class="btn btn-ghost mt-2">Xem tất cả →</a>
+              <a href="interviews.html" class="btn btn-ghost mt-2"
+                >Xem tất cả →</a
+              >
             </div>
             <div>
               <h3 class="mb-2">
@@ -84,9 +160,9 @@
       const saved = DB.getSavedJobs(user.id);
 
       const interviews = apps
-        .filter(a => a.status === "interview_scheduled")
-        .map(a => DB.getInterviewByApplication(a.id))
-        .filter(i => i);
+        .filter((a) => a.status === "interview_scheduled")
+        .map((a) => DB.getInterviewByApplication(a.id))
+        .filter((i) => i);
 
       // Stats
       document.getElementById("stats").innerHTML = `
@@ -100,10 +176,14 @@
       // Upcoming interviews
       const upcoming = interviews.slice(-3).reverse();
       document.getElementById("upcomingInterviews").innerHTML = upcoming.length
-        ? upcoming.map(i => {
-            const job = DB.getJobById(DB.getApplicationById(i.applicationId).jobId);
-            return `<div class="card job-card-dashboard mb-1" style="border-left: 3px solid var(--primary);"><div class="flex-between"><div><strong>${job ? job.title : 'N/A'}</strong><br><span class="job-meta-mini">${i.date} @ ${i.time}</span></div><span class="badge badge-warning">${i.type}</span></div></div>`;
-          }).join('')
+        ? upcoming
+            .map((i) => {
+              const job = DB.getJobById(
+                DB.getApplicationById(i.applicationId).jobId,
+              );
+              return `<div class="card job-card-dashboard mb-1" style="border-left: 3px solid var(--primary);"><div class="flex-between"><div><strong>${job ? job.title : "N/A"}</strong><br><span class="job-meta-mini">${i.date} @ ${i.time}</span></div><span class="badge badge-warning">${i.type}</span></div></div>`;
+            })
+            .join("")
         : '<div class="empty-state" style="padding:20px"><p>Chưa có lịch phỏng vấn</p></div>';
 
       // Recent applications

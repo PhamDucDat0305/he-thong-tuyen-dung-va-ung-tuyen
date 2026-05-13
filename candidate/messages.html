@@ -3,6 +3,79 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <link
+      rel="apple-touch-icon"
+      sizes="57x57"
+      href="../ico//apple-icon-57x57.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="60x60"
+      href="../ico//apple-icon-60x60.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="72x72"
+      href="../ico//apple-icon-72x72.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="76x76"
+      href="../ico//apple-icon-76x76.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="114x114"
+      href="../ico//apple-icon-114x114.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="120x120"
+      href="../ico//apple-icon-120x120.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="144x144"
+      href="../ico//apple-icon-144x144.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="152x152"
+      href="../ico//apple-icon-152x152.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="../ico//apple-icon-180x180.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="../ico//android-icon-192x192.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="../ico//favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="96x96"
+      href="../ico//favicon-96x96.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="../ico//favicon-16x16.png"
+    />
+    <link rel="manifest" href="../ico//manifest.json" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="./ico/ms-icon-144x144.png" />
+    <meta name="theme-color" content="#ffffff" />
     <title>Tin nhắn — JobViệt</title>
     <link rel="stylesheet" href="../css/styles.css" />
     <link rel="stylesheet" href="../css/navbar.css" />
@@ -56,32 +129,39 @@
         const list = document.getElementById("convList");
 
         if (!conversations.length) {
-          list.innerHTML = '<p class="text-center" style="padding:20px; color:var(--text-light); font-size:0.9rem">Chưa có hội thoại nào.</p>';
+          list.innerHTML =
+            '<p class="text-center" style="padding:20px; color:var(--text-light); font-size:0.9rem">Chưa có hội thoại nào.</p>';
           return;
         }
 
-        list.innerHTML = conversations.map(c => {
-          const initials = c.contact.fullName.split(' ').map(n => n[0]).join('').slice(0, 2);
-          const isActive = c.contact.id === activeContactId;
-          return `
-            <div class="conv-item ${isActive ? 'active' : ''}" onclick="selectContact('${c.contact.id}')">
+        list.innerHTML = conversations
+          .map((c) => {
+            const initials = c.contact.fullName
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .slice(0, 2);
+            const isActive = c.contact.id === activeContactId;
+            return `
+            <div class="conv-item ${isActive ? "active" : ""}" onclick="selectContact('${c.contact.id}')">
               <div class="conv-avatar">${initials}</div>
               <div class="conv-info">
                 <div class="conv-name">${c.contact.fullName}</div>
-                <div class="conv-last-msg">${c.lastMessage ? (c.lastMessage.senderId === user.id ? 'Bạn: ' : '') + c.lastMessage.content : 'Bắt đầu trò chuyện'}</div>
+                <div class="conv-last-msg">${c.lastMessage ? (c.lastMessage.senderId === user.id ? "Bạn: " : "") + c.lastMessage.content : "Bắt đầu trò chuyện"}</div>
               </div>
-              ${c.unreadCount > 0 ? `<div class="conv-unread">${c.unreadCount}</div>` : ''}
+              ${c.unreadCount > 0 ? `<div class="conv-unread">${c.unreadCount}</div>` : ""}
             </div>
           `;
-        }).join('');
+          })
+          .join("");
       }
 
       function selectContact(contactId) {
         activeContactId = contactId;
         // Update URL without reload
-        const newUrl = window.location.pathname + '?to=' + contactId;
-        window.history.pushState({path:newUrl},'',newUrl);
-        
+        const newUrl = window.location.pathname + "?to=" + contactId;
+        window.history.pushState({ path: newUrl }, "", newUrl);
+
         renderConversations();
         renderChat();
         DB.markAsRead(user.id, contactId);
@@ -94,7 +174,11 @@
         if (!contact) return;
 
         const messages = DB.getMessages(user.id, activeContactId);
-        const initials = contact.fullName.split(' ').map(n => n[0]).join('').slice(0, 2);
+        const initials = contact.fullName
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .slice(0, 2);
 
         const chatMain = document.getElementById("chatMain");
         chatMain.innerHTML = `
@@ -103,16 +187,21 @@
             <div class="conv-name">${contact.fullName}</div>
           </div>
           <div class="chat-messages" id="msgList">
-            ${messages.map(m => {
-              const isMine = m.senderId === user.id;
-              const time = new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-              return `
-                <div class="msg ${isMine ? 'msg-sent' : 'msg-received'}">
+            ${messages
+              .map((m) => {
+                const isMine = m.senderId === user.id;
+                const time = new Date(m.timestamp).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+                return `
+                <div class="msg ${isMine ? "msg-sent" : "msg-received"}">
                   ${m.content}
                   <span class="msg-time">${time}</span>
                 </div>
               `;
-            }).join('')}
+              })
+              .join("")}
           </div>
           <form class="chat-input-area" onsubmit="handleSend(event)">
             <input type="text" class="chat-input" id="chatInput" placeholder="Nhập tin nhắn..." autocomplete="off">
@@ -141,12 +230,13 @@
         renderChat();
         DB.markAsRead(user.id, activeContactId);
       }
-      
+
       // Auto refresh for "mock" real-time
       setInterval(() => {
         renderConversations();
         if (activeContactId) {
-          const countBefore = document.getElementById('msgList').children.length;
+          const countBefore =
+            document.getElementById("msgList").children.length;
           const messages = DB.getMessages(user.id, activeContactId);
           if (messages.length > countBefore) {
             renderChat();

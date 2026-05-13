@@ -3,6 +3,79 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <link
+      rel="apple-touch-icon"
+      sizes="57x57"
+      href="../ico//apple-icon-57x57.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="60x60"
+      href="../ico//apple-icon-60x60.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="72x72"
+      href="../ico//apple-icon-72x72.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="76x76"
+      href="../ico//apple-icon-76x76.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="114x114"
+      href="../ico//apple-icon-114x114.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="120x120"
+      href="../ico//apple-icon-120x120.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="144x144"
+      href="../ico//apple-icon-144x144.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="152x152"
+      href="../ico//apple-icon-152x152.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="../ico//apple-icon-180x180.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="../ico//android-icon-192x192.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="../ico//favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="96x96"
+      href="../ico//favicon-96x96.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="../ico//favicon-16x16.png"
+    />
+    <link rel="manifest" href="../ico//manifest.json" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="./ico/ms-icon-144x144.png" />
+    <meta name="theme-color" content="#ffffff" />
     <title>Lịch phỏng vấn của tôi — JobViệt</title>
     <link rel="stylesheet" href="../css/styles.css" />
     <link rel="stylesheet" href="../css/navbar.css" />
@@ -19,7 +92,10 @@
       <aside class="sidebar" id="sidebar"></aside>
       <main class="content-area">
         <div class="content-header">
-          <h1><i class="fa-solid fa-calendar-days text-primary"></i> Lịch phỏng vấn của tôi</h1>
+          <h1>
+            <i class="fa-solid fa-calendar-days text-primary"></i> Lịch phỏng
+            vấn của tôi
+          </h1>
           <p>Danh sách các buổi phỏng vấn đã được nhà tuyển dụng sắp xếp</p>
         </div>
 
@@ -41,21 +117,30 @@
       BadgeNotifier.markSeen(user.id, "cand_interviews");
 
       function renderInterviews() {
-        const apps = DB.getApplicationsByCandidate(user.id).filter(a => a.status === "interview_scheduled");
+        const apps = DB.getApplicationsByCandidate(user.id).filter(
+          (a) => a.status === "interview_scheduled",
+        );
         const interviews = apps
-          .map(a => {
+          .map((a) => {
             const interview = DB.getInterviewByApplication(a.id);
             if (interview) {
               const job = DB.getJobById(a.jobId);
-              return { ...interview, jobTitle: job ? job.title : 'N/A', companyName: job ? job.companyName : 'N/A' };
+              return {
+                ...interview,
+                jobTitle: job ? job.title : "N/A",
+                companyName: job ? job.companyName : "N/A",
+              };
             }
             return null;
           })
-          .filter(i => i !== null)
-          .sort((a, b) => new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time));
+          .filter((i) => i !== null)
+          .sort(
+            (a, b) =>
+              new Date(a.date + " " + a.time) - new Date(b.date + " " + b.time),
+          );
 
         const container = document.getElementById("interviewList");
-        
+
         if (!interviews.length) {
           container.innerHTML = `
             <div class="empty-state">
@@ -67,7 +152,9 @@
           return;
         }
 
-        container.innerHTML = interviews.map(i => `
+        container.innerHTML = interviews
+          .map(
+            (i) => `
           <div class="card animate-fade-up mb-2" style="padding: 20px; border-left: 4px solid var(--primary);">
             <div class="flex-between flex-wrap" style="gap: 15px;">
               <div>
@@ -76,7 +163,7 @@
                 <div style="display: grid; gap: 8px; font-size: 0.95rem;">
                   <span><i class="fa-solid fa-calendar text-info" style="width: 20px;"></i> <strong>Ngày:</strong> ${App.formatDate(i.date)}</span>
                   <span><i class="fa-solid fa-clock text-warning" style="width: 20px;"></i> <strong>Giờ:</strong> ${i.time}</span>
-                  <span><i class="fa-solid fa-video text-success" style="width: 20px;"></i> <strong>Hình thức:</strong> ${i.type === 'online' ? 'Phỏng vấn Online' : 'Phỏng vấn Trực tiếp'}</span>
+                  <span><i class="fa-solid fa-video text-success" style="width: 20px;"></i> <strong>Hình thức:</strong> ${i.type === "online" ? "Phỏng vấn Online" : "Phỏng vấn Trực tiếp"}</span>
                 </div>
               </div>
               <div class="flex-column" style="align-items: flex-end; gap: 10px;">
@@ -87,20 +174,27 @@
                 </div>
               </div>
             </div>
-            ${i.notes ? `
+            ${
+              i.notes
+                ? `
               <div id="notes_${i.id}" style="margin-top: 15px; padding: 12px; background: #f8fafc; border-radius: 8px; font-size: 0.9rem; display: none;">
                 <strong style="color: var(--text-light);">Ghi chú/Địa điểm:</strong><br>
                 <div style="margin-top: 5px; white-space: pre-line;">${i.notes}</div>
               </div>
-            ` : ''}
+            `
+                : ""
+            }
           </div>
-        `).join('');
+        `,
+          )
+          .join("");
       }
 
       function viewDetails(id) {
-        const notes = document.getElementById('notes_' + id);
+        const notes = document.getElementById("notes_" + id);
         if (notes) {
-          notes.style.display = notes.style.display === 'none' ? 'block' : 'none';
+          notes.style.display =
+            notes.style.display === "none" ? "block" : "none";
         } else {
           Toast.info("Không có ghi chú thêm cho buổi phỏng vấn này.");
         }
@@ -110,4 +204,3 @@
     </script>
   </body>
 </html>
-
