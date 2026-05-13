@@ -1,8 +1,170 @@
 /* ========== SHARED UTILITIES & NAVIGATION ========== */
 
+/* ========== NOTIFICATION BADGE SYSTEM ========== */
+const BadgeNotifier = {
+  _seenKey(userId, pageKey) {
+    return `notif_seen_${userId}_${pageKey}`;
+  },
+
+  getLastSeen(userId, pageKey) {
+    const v = localStorage.getItem(this._seenKey(userId, pageKey));
+    return v ? new Date(v) : new Date(0);
+  },
+
+  markSeen(userId, pageKey) {
+    localStorage.setItem(
+      this._seenKey(userId, pageKey),
+      new Date().toISOString(),
+    );
+    this._setBadgeCount(pageKey, 0);
+  },
+
+  markSeenInvites(userId) {
+    const totalKey = `notif_invites_total_${userId}`;
+    const seenKey = `notif_invites_seen_${userId}`;
+    const total = parseInt(localStorage.getItem(totalKey) || "2");
+    localStorage.setItem(seenKey, String(total));
+    this._setBadgeCount("invites", 0);
+  },
+
+  markSeenProfileViews(userId) {
+    const totalKey = `notif_pv_total_${userId}`;
+    const seenKey = `notif_pv_seen_${userId}`;
+    const total = parseInt(localStorage.getItem(totalKey) || "3");
+    localStorage.setItem(seenKey, String(total));
+    this._setBadgeCount("profile_views", 0);
+  },
+
+  _setBadgeCount(pageKey, count) {
+    const el = document.querySelector(`[data-badge-key="${pageKey}"]`);
+    if (!el) return;
+    if (count > 0) {
+      el.textContent = "+" + (count > 99 ? "99+" : count);
+      el.style.display = "inline-flex";
+      el.classList.add("nav-badge-pop");
+      setTimeout(() => el.classList.remove("nav-badge-pop"), 400);
+    } else {
+      el.style.display = "none";
+    }
+  },
+
+  _counts: {
+    emp_applied(userId) {
+      try {
+        const jobIds = new Set(DB.getJobsByEmployer(userId).map((j) => j.id));
+        const lastSeen = BadgeNotifier.getLastSeen(userId, "emp_applied");
+        return DB.getApplications().filter(
+          (a) =>
+            jobIds.has(a.jobId) &&
+            a.status === "applied" &&
+            new Date(a.appliedAt) > lastSeen,
+        ).length;
+      } catch (e) {
+        return 0;
+      }
+    },
+    emp_interviews(userId) {
+      try {
+        const jobIds = new Set(DB.getJobsByEmployer(userId).map((j) => j.id));
+        const lastSeen = BadgeNotifier.getLastSeen(userId, "emp_interviews");
+        return DB.getApplications().filter(
+          (a) =>
+            jobIds.has(a.jobId) &&
+            a.status === "interview_scheduled" &&
+            new Date(a.updatedAt || a.appliedAt) > lastSeen,
+        ).length;
+      } catch (e) {
+        return 0;
+      }
+    },
+    cand_apps(userId) {
+      try {
+        const lastSeen = BadgeNotifier.getLastSeen(userId, "cand_apps");
+        return DB.getApplicationsByCandidate(userId).filter(
+          (a) =>
+            ["interview_scheduled", "accepted", "rejected", "failed"].includes(
+              a.status,
+            ) && new Date(a.updatedAt || a.appliedAt) > lastSeen,
+        ).length;
+      } catch (e) {
+        return 0;
+      }
+    },
+    cand_interviews(userId) {
+      try {
+        const lastSeen = BadgeNotifier.getLastSeen(userId, "cand_interviews");
+        const appIds = new Set(
+          DB.getApplicationsByCandidate(userId).map((a) => a.id),
+        );
+        return DB.getInterviews().filter(
+          (i) =>
+            appIds.has(i.applicationId) && new Date(i.createdAt) > lastSeen,
+        ).length;
+      } catch (e) {
+        return 0;
+      }
+    },
+    invites(userId) {
+      try {
+        const total = parseInt(
+          localStorage.getItem(`notif_invites_total_${userId}`) || "2",
+        );
+        const seen = parseInt(
+          localStorage.getItem(`notif_invites_seen_${userId}`) || "0",
+        );
+        return Math.max(0, total - seen);
+      } catch (e) {
+        return 0;
+      }
+    },
+    profile_views(userId) {
+      try {
+        const total = parseInt(
+          localStorage.getItem(`notif_pv_total_${userId}`) || "3",
+        );
+        const seen = parseInt(
+          localStorage.getItem(`notif_pv_seen_${userId}`) || "0",
+        );
+        return Math.max(0, total - seen);
+      } catch (e) {
+        return 0;
+      }
+    },
+  },
+
+  getCount(pageKey, userId) {
+    return this._counts[pageKey] ? this._counts[pageKey](userId) : 0;
+  },
+
+  getAllCounts(userId, role) {
+    const r = {};
+    if (role === "employer") {
+      r.emp_applied = this.getCount("emp_applied", userId);
+      r.emp_interviews = this.getCount("emp_interviews", userId);
+    } else if (role === "candidate") {
+      r.cand_apps = this.getCount("cand_apps", userId);
+      r.cand_interviews = this.getCount("cand_interviews", userId);
+      r.invites = this.getCount("invites", userId);
+      r.profile_views = this.getCount("profile_views", userId);
+    }
+    return r;
+  },
+
+  startPolling(userId, role, ms = 5000) {
+    if (this._timer) clearInterval(this._timer);
+    this._timer = setInterval(() => {
+      const counts = this.getAllCounts(userId, role);
+      Object.entries(counts).forEach(([key, count]) =>
+        this._setBadgeCount(key, count),
+      );
+    }, ms);
+  },
+};
+
 const App = {
   /* === Navbar Renderer (Removed - Now handled by navbar.js) === */
 
+  /* === Sidebar Renderer === */
   /* === Sidebar Renderer === */
   renderSidebar(role, activePage) {
     const user = Auth.getCurrentUser();
@@ -22,6 +184,13 @@ const App = {
       candidate: "Ứng viên",
     };
 
+    // Badge helper â€” renders a hidden-by-default badge span
+    const makeBdg = (bc) => (key) => {
+      const c = bc[key] || 0;
+      const hidden = c > 0 ? "" : ' style="display:none"';
+      return `<span class="nav-badge" data-badge-key="${key}"${hidden}>+${c > 99 ? "99+" : c}</span>`;
+    };
+
     let menuHTML = "";
     if (role === "admin") {
       menuHTML = `
@@ -35,55 +204,48 @@ const App = {
         <a href="../index.html"><span class="icon"><i class="fa-solid fa-globe text-indigo"></i></span> Xem trang web</a>
       `;
     } else if (role === "employer") {
+      const bdg = makeBdg(BadgeNotifier.getAllCounts(user.id, "employer"));
       menuHTML = `
         <div class="menu-label">Tổng quan</div>
         <a href="dashboard.html" class="${activePage === "dashboard" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-chart-simple text-primary"></i></span> Dashboard</a>
-
         <div class="menu-label">Quản lý tuyển dụng</div>
         <a href="post-job.html" class="${activePage === "post" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-pen-to-square text-success"></i></span> Đăng tin tuyển dụng</a>
         <a href="my-jobs.html" class="${activePage === "myjobs" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-rectangle-list text-info"></i></span> Danh sách tin tuyển dụng</a>
-
         <div class="menu-label">Quản lý ứng viên</div>
         <a href="applicants.html" class="${activePage === "applicants" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-users text-purple"></i></span> Danh sách ứng viên</a>
-        <a href="applied-candidates.html" class="${activePage === "applied" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-inbox text-orange"></i></span> Ứng viên đã ứng tuyển</a>
-        <a href="interviews.html" class="${activePage === "interviews" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-calendar-days text-indigo"></i></span> Lịch phỏng vấn</a>
+        <a href="applied-candidates.html" class="${activePage === "applied" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-inbox text-orange"></i></span> Ứng viên đã ứng tuyển${bdg("emp_applied")}</a>
+        <a href="interviews.html" class="${activePage === "interviews" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-calendar-days text-indigo"></i></span> Lịch phỏng vấn${bdg("emp_interviews")}</a>
         <a href="accepted-candidates.html" class="${activePage === "accepted" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-circle-check text-success"></i></span> Ứng viên đã trúng tuyển</a>
         <a href="saved-candidates.html" class="${activePage === "saved_candidates" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-thumbtack text-pink"></i></span> Ứng viên đã lưu</a>
-
         <div class="menu-label">Quản lý công ty</div>
         <a href="company-profile.html" class="${activePage === "company" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-building text-teal"></i></span> Hồ sơ công ty</a>
         <a href="edit-company.html" class="${activePage === "edit_company" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-pen-to-square text-primary"></i></span> Chỉnh sửa thông tin công ty</a>
-
         <div class="menu-label">Báo cáo & thống kê</div>
         <a href="stats-views.html" class="${activePage === "stats_views" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-eye text-warning"></i></span> Lượt xem tin</a>
         <a href="stats-performance.html" class="${activePage === "stats_performance" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-chart-simple text-success"></i></span> Hiệu quả tuyển dụng</a>
         <a href="messages.html" class="${activePage === "messages" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-comments text-primary"></i></span> Tin nhắn</a>
-
         <div class="menu-label">Cá nhân & Bảo mật</div>
         <a href="account.html" class="${activePage === "account" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-user text-primary"></i></span> Thông tin tài khoản</a>
         <a href="password.html" class="${activePage === "password" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-key text-warning"></i></span> Đổi mật khẩu</a>
         <a href="security.html" class="${activePage === "security" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-shield-halved text-danger"></i></span> Cài đặt bảo mật</a>
       `;
     } else if (role === "candidate") {
+      const bdg = makeBdg(BadgeNotifier.getAllCounts(user.id, "candidate"));
       menuHTML = `
         <div class="menu-label">Tổng quan</div>
         <a href="dashboard.html" class="${activePage === "dashboard" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-chart-simple text-primary"></i></span> Dashboard</a>
-
         <div class="menu-label">Quản lý tìm việc</div>
         <a href="saved-jobs.html" class="${activePage === "saved_jobs" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-bookmark text-pink"></i></span> Việc làm đã lưu</a>
-        <a href="my-applications.html" class="${activePage === "my_apps" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-envelope-open-text text-orange"></i></span> Việc làm đã ứng tuyển</a>
-        <a href="interviews.html" class="${activePage === "interviews" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-calendar-days text-primary"></i></span> Lịch phỏng vấn</a>
+        <a href="my-applications.html" class="${activePage === "my_apps" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-envelope-open-text text-orange"></i></span> Việc làm đã ứng tuyển${bdg("cand_apps")}</a>
+        <a href="interviews.html" class="${activePage === "interviews" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-calendar-days text-primary"></i></span> Lịch phỏng vấn${bdg("cand_interviews")}</a>
         <a href="accepted-jobs.html" class="${activePage === "accepted" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-circle-check text-success"></i></span> Việc làm trúng tuyển</a>
-
         <div class="menu-label">Quản lý CV & Cover Letter</div>
         <a href="my-cv.html" class="${activePage === "my_cv" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-file-lines text-success"></i></span> CV của tôi</a>
         <a href="cover-letter.html" class="${activePage === "cover_letter" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-envelope text-info"></i></span> Cover Letter của tôi</a>
-
         <div class="menu-label">Tương tác nhà tuyển dụng</div>
-        <a href="employer-invites.html" class="${activePage === "invites" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-handshake text-indigo"></i></span> Nhà tuyển dụng muốn kết nối</a>
-        <a href="profile-views.html" class="${activePage === "profile_views" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-eye text-warning"></i></span> Nhà tuyển dụng xem hồ sơ</a>
+        <a href="employer-invites.html" class="${activePage === "invites" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-handshake text-indigo"></i></span> Nhà tuyển dụng muốn kết nối${bdg("invites")}</a>
+        <a href="profile-views.html" class="${activePage === "profile_views" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-eye text-warning"></i></span> Nhà tuyển dụng xem hồ sơ${bdg("profile_views")}</a>
         <a href="messages.html" class="${activePage === "messages" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-comments text-primary"></i></span> Tin nhắn</a>
-
         <div class="menu-label">Cá nhân & Bảo mật</div>
         <a href="account.html" class="${activePage === "account" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-user text-primary"></i></span> Thông tin cá nhân</a>
         <a href="security.html" class="${activePage === "security" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-shield-halved text-danger"></i></span> Cài đặt bảo mật</a>
@@ -107,6 +269,9 @@ const App = {
         </div>
       </div>
     `;
+
+    // Start real-time badge polling (5s interval)
+    if (role !== "admin") BadgeNotifier.startPolling(user.id, role);
 
     // Add overlay if it doesn't exist
     if (!document.getElementById("sidebarOverlay")) {
@@ -214,7 +379,7 @@ const App = {
       <div class="container">
         <div class="footer-grid">
           <div>
-            <h4><i class="fa-solid fa-briefcase"></i> JobViệt</h4>
+            <h4><i class="fa-solid fa-briefcase"></i> Job Việt</h4>
             <p>Nền tảng tuyển dụng và tìm việc hàng đầu Việt Nam. Kết nối nhà tuyển dụng với ứng viên tiềm năng một cách nhanh chóng và hiệu quả.</p>
           </div>
           <div>
@@ -243,7 +408,7 @@ const App = {
           </div>
         </div>
         <div class="footer-bottom">
-          © 2026 JobViệt — Hệ thống tuyển dụng và tìm việc làm
+          © 2026 Job Việt — Hệ thống tuyển dụng và tìm việc làm
         </div>
       </div>
     `;
@@ -358,7 +523,7 @@ const App = {
     const btn = document.createElement("div");
     btn.className = "floating-chat-btn";
     btn.innerHTML = '<i class="fa-solid fa-comment-dots"></i>';
-    btn.title = "Tin nhắn";
+    btn.title = "Tin nháº¯n";
     btn.onclick = () => {
       widget.classList.toggle("active");
       if (widget.classList.contains("active")) {
@@ -369,12 +534,26 @@ const App = {
 
     let activeContactId = null;
 
+    // Determine messages page URL
+    const isSubfolder =
+      location.pathname.includes("/employer/") ||
+      location.pathname.includes("/candidate/");
+    const msgPageBase = isSubfolder
+      ? ""
+      : user.role === "employer"
+        ? "employer/"
+        : "candidate/";
+    const msgPageUrl = msgPageBase + "messages.html";
+
     const renderWidgetConversations = () => {
       const convs = DB.getConversations(user.id);
       widget.innerHTML = `
         <div class="widget-header">
-          <strong>Tin nhắn</strong>
-          <button class="widget-back-btn" onclick="document.getElementById('chatWidget').classList.remove('active')"><i class="fa-solid fa-xmark"></i></button>
+          <div class="widget-header-left">
+            <div class="widget-header-icon"><i class="fa-solid fa-comment-dots"></i></div>
+            <div class="widget-header-title">Tin nhắn</div>
+          </div>
+          <button class="widget-icon-btn" onclick="document.getElementById('chatWidget').classList.remove('active')" title="Đóng"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="widget-body" id="widgetBody">
           ${
@@ -386,20 +565,36 @@ const App = {
                       .map((n) => n[0])
                       .join("")
                       .slice(0, 2);
+                    const hasUnread = c.unreadCount > 0;
+                    const timeStr = c.lastMessage
+                      ? App.timeAgo(c.lastMessage.createdAt)
+                      : "";
                     return `
-                <div class="conv-item" onclick="App.selectWidgetContact('${c.contact.id}')">
-                  <div class="conv-avatar" style="width:36px; height:36px; font-size:0.8rem">${initials}</div>
-                  <div class="conv-info">
-                    <div class="conv-name" style="font-size:0.85rem">${c.contact.fullName}</div>
-                    <div class="conv-last-msg" style="font-size:0.75rem">${c.lastMessage ? c.lastMessage.content : "Bắt đầu trò chuyện"}</div>
+                <div class="w-conv-item" onclick="App.selectWidgetContact('${c.contact.id}')">
+                  <div class="w-conv-avatar${hasUnread ? " has-unread" : ""}">
+                    ${initials}
+                    <span class="w-online-dot"></span>
                   </div>
-                  ${c.unreadCount > 0 ? `<div class="conv-unread" style="width:16px; height:16px; font-size:0.6rem">${c.unreadCount}</div>` : ""}
+                  <div class="w-conv-info">
+                    <div class="w-conv-name">${c.contact.fullName}</div>
+                    <div class="w-conv-preview${hasUnread ? " unread" : ""}">${c.lastMessage ? c.lastMessage.content : "Bắt đầu trò chuyện..."}</div>
+                  </div>
+                  <div class="w-conv-meta">
+                    ${timeStr ? `<span class="w-conv-time">${timeStr}</span>` : ""}
+                    ${hasUnread ? `<span class="w-conv-badge">${c.unreadCount > 9 ? "9+" : c.unreadCount}</span>` : ""}
+                  </div>
                 </div>
               `;
                   })
                   .join("")
-              : '<p class="text-center" style="margin-top:50px; color:var(--text-light); font-size:0.9rem">Chưa có hội thoại nào.</p>'
+              : `<div class="w-empty">
+                   <div class="w-empty-icon"><i class="fa-regular fa-comment-dots"></i></div>
+                   <div class="w-empty-text">Chưa có hội thoại nào.<br>Hãy bắt đầu trò chuyện!</div>
+                 </div>`
           }
+        </div>
+        <div class="widget-see-all">
+          <a href="${msgPageUrl}" class="widget-see-all-btn">Xem tất cả tin nhắn <i class="fa-solid fa-arrow-right"></i></a>
         </div>
       `;
     };
@@ -415,29 +610,26 @@ const App = {
         .slice(0, 2);
 
       widget.innerHTML = `
-        <div class="widget-header">
-          <div class="flex" style="gap:10px">
-            <button class="widget-back-btn" onclick="App.backToConvs()"><i class="fa-solid fa-chevron-left"></i></button>
-            <div class="conv-avatar" style="width:30px; height:30px; font-size:0.7rem">${initials}</div>
-            <span style="font-size:0.9rem; font-weight:600">${contact.fullName}</span>
+        <div class="w-chat-header">
+          <button class="widget-icon-btn" onclick="App.backToConvs()"><i class="fa-solid fa-chevron-left"></i></button>
+          <div class="w-chat-avatar">${initials}</div>
+          <div class="w-chat-name-wrap">
+            <div class="w-chat-name">${contact.fullName}</div>
+            <div class="w-chat-status">Đang hoạt động</div>
           </div>
-          <button class="widget-back-btn" onclick="document.getElementById('chatWidget').classList.remove('active')"><i class="fa-solid fa-xmark"></i></button>
+          <button class="widget-icon-btn" onclick="document.getElementById('chatWidget').classList.remove('active')" title="Đóng"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="widget-body" id="widgetMsgList" style="padding:15px; gap:8px">
+        <div class="w-msg-list" id="widgetMsgList">
           ${messages
             .map((m) => {
               const isMine = m.senderId === user.id;
-              return `
-              <div class="msg ${isMine ? "msg-sent" : "msg-received"}" style="font-size:0.85rem; padding:8px 12px; border-radius:12px; max-width:85%">
-                ${m.content}
-              </div>
-            `;
+              return `<div class="w-msg ${isMine ? "w-msg-sent" : "w-msg-received"}">${m.content}</div>`;
             })
             .join("")}
         </div>
-        <form class="widget-footer" onsubmit="App.handleWidgetSend(event, '${contactId}')">
-          <input type="text" class="chat-input" id="widgetInput" placeholder="Nhập tin nhắn..." style="padding:8px 15px; font-size:0.85rem" autocomplete="off">
-          <button type="submit" class="btn-send" style="width:35px; height:35px; font-size:0.9rem"><i class="fa-solid fa-paper-plane"></i></button>
+        <form class="w-input-area" onsubmit="App.handleWidgetSend(event, '${contactId}')">
+          <input type="text" class="w-chat-input" id="widgetInput" placeholder="Aa" autocomplete="off">
+          <button type="submit" class="w-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
         </form>
       `;
 

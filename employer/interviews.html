@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
@@ -60,6 +60,7 @@
       const user = Auth.requireAuth(["employer"]);
       if (!user) throw "redirect";
       App.renderSidebar("employer", "interviews");
+      BadgeNotifier.markSeen(user.id, "emp_interviews");
 
       function render() {
         const myJobs = DB.getJobsByEmployer(user.id);
@@ -126,3 +127,4 @@
     </script>
   </body>
 </html>
+

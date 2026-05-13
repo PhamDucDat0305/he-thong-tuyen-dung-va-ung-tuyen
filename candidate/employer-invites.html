@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
@@ -86,6 +86,8 @@
       const user = Auth.requireAuth(["candidate"]);
       if (!user) throw "redirect";
       App.renderSidebar("candidate", "invites");
+      BadgeNotifier.markSeenInvites(user.id);
     </script>
   </body>
 </html>
+
