@@ -183,7 +183,7 @@
         // Tăng lượt xem (chỉ tăng nếu người xem không phải chủ sở hữu tin)
         const currentUser = window.Auth.getCurrentUser();
         if (!currentUser || currentUser.id !== job.createdBy) {
-          window.DB.incrementJobViews(jobId);
+          await window.DB.incrementJobViews(jobId);
         }
 
         document.title = `${job.title} — JobViệt`;
@@ -221,18 +221,18 @@
       `;
 
         // Kiểm tra trạng thái lưu
-        updateSaveButton(jobId);
+        await window.updateSaveButton(jobId);
       });
 
-      window.updateSaveButton = function(jobId) {
+      window.updateSaveButton = async function(jobId) {
         const user = window.Auth.getCurrentUser();
         const saveBtn = document.getElementById("saveBtn");
         if (!user || user.role !== "candidate") {
-          saveBtn.style.display = "none";
+          if (saveBtn) saveBtn.style.display = "none";
           return;
         }
 
-        const isSaved = window.DB.isJobSaved(user.id, jobId);
+        const isSaved = await window.DB.isJobSaved(user.id, jobId);
         if (isSaved) {
           saveBtn.classList.add("btn-saved");
           saveBtn.innerHTML = '<i class="fa-solid fa-bookmark"></i> Đã lưu';
@@ -243,7 +243,7 @@
         }
       }
 
-      window.toggleSave = function(jobId) {
+      window.toggleSave = async function(jobId) {
         const user = window.Auth.getCurrentUser();
         if (!user) {
           Toast.warning("Vui lòng đăng nhập để lưu công việc!");
@@ -254,8 +254,8 @@
           return;
         }
 
-        const isSaved = window.DB.toggleSaveJob(user.id, jobId);
-        window.updateSaveButton(jobId);
+        const isSaved = await window.DB.toggleSaveJob(user.id, jobId);
+        await window.updateSaveButton(jobId);
 
         if (isSaved) {
           Toast.success("Đã lưu công việc thành công!");

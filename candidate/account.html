@@ -168,28 +168,33 @@
       document.getElementById("avatarPreview").textContent =
         user.fullName[0].toUpperCase();
 
-      function updateAccount(e) {
+      async function updateAccount(e) {
         e.preventDefault();
         const newName = document.getElementById("fullName").value.trim();
         const newEmail = document.getElementById("email").value.trim();
+        const phone = document.getElementById("phone").value.trim();
 
-        const users = JSON.parse(localStorage.getItem("users")) || [];
-        const idx = users.findIndex((u) => u.id === user.id);
-        if (idx >= 0) {
-          users[idx].fullName = newName;
-          users[idx].email = newEmail;
-          localStorage.setItem("users", JSON.stringify(users));
-
-          user.fullName = newName;
-          user.email = newEmail;
-          localStorage.setItem("currentUser", JSON.stringify(user));
-          if (sessionStorage.getItem("loggedInUser"))
-            sessionStorage.setItem("loggedInUser", JSON.stringify(user));
+        try {
+          const updates = { 
+            fullName: newName, 
+            email: newEmail,
+            phone: phone
+          };
+          
+          await window.DB.updateUser(user.id, updates);
+          
+          // Update local session so UI stays in sync
+          window.Auth.updateSession(updates);
 
           Toast.success("Cập nhật thông tin thành công!");
           setTimeout(() => location.reload(), 1000);
+        } catch (error) {
+          console.error(error);
+          Toast.error("Lỗi khi cập nhật thông tin: " + error.message);
         }
       }
+      
+      window.updateAccount = updateAccount;
     </script>
   </body>
 </html>

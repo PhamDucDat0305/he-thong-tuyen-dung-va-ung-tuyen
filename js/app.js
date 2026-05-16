@@ -54,7 +54,8 @@ const BadgeNotifier = {
         const jobs = await window.DB.getJobsByEmployer(userId);
         const jobIds = new Set(jobs.map((j) => j.id));
         const lastSeen = BadgeNotifier.getLastSeen(userId, "emp_applied");
-        return window.DB.getApplications().filter(
+        const apps = await window.DB.getApplications();
+        return apps.filter(
           (a) =>
             jobIds.has(a.jobId) &&
             a.status === "applied" &&
@@ -69,7 +70,8 @@ const BadgeNotifier = {
         const jobs = await window.DB.getJobsByEmployer(userId);
         const jobIds = new Set(jobs.map((j) => j.id));
         const lastSeen = BadgeNotifier.getLastSeen(userId, "emp_interviews");
-        return window.DB.getApplications().filter(
+        const apps = await window.DB.getApplications();
+        return apps.filter(
           (a) =>
             jobIds.has(a.jobId) &&
             a.status === "interview_scheduled" &&
@@ -82,7 +84,8 @@ const BadgeNotifier = {
     async cand_apps(userId) {
       try {
         const lastSeen = BadgeNotifier.getLastSeen(userId, "cand_apps");
-        return window.DB.getApplicationsByCandidate(userId).filter(
+        const apps = await window.DB.getApplicationsByCandidate(userId);
+        return apps.filter(
           (a) =>
             ["interview_scheduled", "accepted", "rejected", "failed"].includes(
               a.status,
@@ -95,10 +98,10 @@ const BadgeNotifier = {
     async cand_interviews(userId) {
       try {
         const lastSeen = BadgeNotifier.getLastSeen(userId, "cand_interviews");
-        const appIds = new Set(
-          window.DB.getApplicationsByCandidate(userId).map((a) => a.id),
-        );
-        return window.DB.getInterviews().filter(
+        const apps = await window.DB.getApplicationsByCandidate(userId);
+        const appIds = new Set(apps.map((a) => a.id));
+        const interviews = await window.DB.getInterviews();
+        return interviews.filter(
           (i) =>
             appIds.has(i.applicationId) && new Date(i.createdAt) > lastSeen,
         ).length;
@@ -163,12 +166,14 @@ const BadgeNotifier = {
   },
 };
 
+window.BadgeNotifier = BadgeNotifier;
+
 window.App = {
   /* === Navbar Renderer (Removed - Now handled by navbar.js) === */
 
   /* === Sidebar Renderer === */
   /* === Sidebar Renderer === */
-  renderSidebar(role, activePage) {
+  async renderSidebar(role, activePage) {
     const user = Auth.getCurrentUser();
     const sidebar = document.getElementById("sidebar");
     if (!sidebar || !user) return;
@@ -187,6 +192,7 @@ window.App = {
     };
 
     // Badge helper â€” renders a hidden-by-default badge span
+    const badgeCounts = await BadgeNotifier.getAllCounts(user.id, role);
     const makeBdg = (bc) => (key) => {
       const c = bc[key] || 0;
       const hidden = c > 0 ? "" : ' style="display:none"';
@@ -206,7 +212,7 @@ window.App = {
         <a href="../index.html"><span class="icon"><i class="fa-solid fa-globe text-indigo"></i></span> Xem trang web</a>
       `;
     } else if (role === "employer") {
-      const bdg = makeBdg(BadgeNotifier.getAllCounts(user.id, "employer"));
+      const bdg = makeBdg(badgeCounts);
       menuHTML = `
         <div class="menu-label">Tổng quan</div>
         <a href="dashboard.html" class="${activePage === "dashboard" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-chart-simple text-primary"></i></span> Dashboard</a>
@@ -232,7 +238,7 @@ window.App = {
         <a href="security.html" class="${activePage === "security" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-shield-halved text-danger"></i></span> Cài đặt bảo mật</a>
       `;
     } else if (role === "candidate") {
-      const bdg = makeBdg(BadgeNotifier.getAllCounts(user.id, "candidate"));
+      const bdg = makeBdg(badgeCounts);
       menuHTML = `
         <div class="menu-label">Tổng quan</div>
         <a href="dashboard.html" class="${activePage === "dashboard" ? "active" : ""}"><span class="icon"><i class="fa-solid fa-chart-simple text-primary"></i></span> Dashboard</a>
@@ -318,45 +324,53 @@ window.App = {
     
     container.innerHTML = '<div style="text-align:center; padding: 20px; width: 100%;">Đang tải việc làm...</div>';
     
-    let allJobs = await window.DB.getJobs();
-    let jobs = allJobs.filter((job) => job.status === "active");
+    try {
+      let allJobs = await window.DB.getJobs();
+      let jobs = allJobs.filter((job) => job.status === "active");
 
-    // Nếu là candidate, ẩn các việc đã ứng tuyển
-    const currentUser =
-      typeof window.Auth !== "undefined" ? window.Auth.getCurrentUser() : null;
-    if (currentUser && currentUser.role === "candidate") {
-      const filteredJobs = [];
-      for (const j of jobs) {
-        const applied = await window.DB.hasApplied(j.id, currentUser.id);
-        if (!applied) filteredJobs.push(j);
+      // Nếu là candidate, ẩn các việc đã ứng tuyển
+      const currentUser =
+        typeof window.Auth !== "undefined" ? window.Auth.getCurrentUser() : null;
+      if (currentUser && currentUser.role === "candidate") {
+        const filteredJobs = [];
+        for (const j of jobs) {
+          const applied = await window.DB.hasApplied(j.id, currentUser.id);
+          if (!applied) filteredJobs.push(j);
+        }
+        jobs = filteredJobs;
       }
-      jobs = filteredJobs;
-    }
 
-    jobs = jobs.reverse();
-    
-    if (jobs.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding: 20px; width: 100%;">Hiện chưa có việc làm nào.</div>';
-      return;
-    }
+      jobs = jobs.reverse();
+      
+      if (jobs.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding: 20px; width: 100%;">Hiện chưa có việc làm nào.</div>';
+        return;
+      }
 
-    container.innerHTML = jobs
-      .map(
-        (job) => `
-      <div class="job-card animate-fade-up">
-        <div class="job-title" style="font-size:1.2rem; font-weight:700; color:var(--text); margin-bottom:8px">${job.title}</div>
-        <div class="job-company" style="color:var(--primary); font-weight:600; margin-bottom:12px">${job.companyName}</div>
-        <div class="job-meta" style="display:flex; gap:16px; font-size:0.9rem; color:var(--text-light); margin-bottom:16px">
-          <span><i class="fa-solid fa-location-dot text-danger"></i> ${job.location}</span>
-          <span><i class="fa-solid fa-money-bill-wave text-success"></i> ${job.salary}</span>
+      container.innerHTML = jobs
+        .map(
+          (job) => `
+        <div class="job-card animate-fade-up">
+          <div class="job-title" style="font-size:1.2rem; font-weight:700; color:var(--text); margin-bottom:8px">${job.title}</div>
+          <div class="job-company" style="color:var(--primary); font-weight:600; margin-bottom:12px">${job.companyName}</div>
+          <div class="job-meta" style="display:flex; gap:16px; font-size:0.9rem; color:var(--text-light); margin-bottom:16px">
+            <span><i class="fa-solid fa-location-dot text-danger"></i> ${job.location}</span>
+            <span><i class="fa-solid fa-money-bill-wave text-success"></i> ${job.salary}</span>
+          </div>
+          <div class="job-actions">
+            <button onclick="App.viewJob('${job.id}')" class="btn btn-sm btn-primary">Xem chi tiết</button>
+          </div>
         </div>
-        <div class="job-actions">
-          <button onclick="App.viewJob('${job.id}')" class="btn btn-sm btn-primary">Xem chi tiết</button>
-        </div>
-      </div>
-    `,
-      )
-      .join("");
+      `,
+        )
+        .join("");
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      container.innerHTML = `<div style="text-align:center; padding: 20px; width: 100%; color: var(--danger);">
+        Lỗi tải dữ liệu. Vui lòng kiểm tra quyền truy cập Firestore.<br>
+        <small>${error.message}</small>
+      </div>`;
+    }
   },
 
   viewJob(id) {
@@ -561,8 +575,8 @@ window.App = {
         : "candidate/";
     const msgPageUrl = msgPageBase + "messages.html";
 
-    const renderWidgetConversations = () => {
-      const convs = DB.getConversations(user.id);
+    const renderWidgetConversations = async () => {
+      const convs = await window.DB.getConversations(user.id);
       widget.innerHTML = `
         <div class="widget-header">
           <div class="widget-header-left">
@@ -577,13 +591,15 @@ window.App = {
               ? convs
                   .map((c) => {
                     const initials = c.contact.fullName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .slice(0, 2);
+                      ? c.contact.fullName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .slice(0, 2)
+                      : "U";
                     const hasUnread = c.unreadCount > 0;
                     const timeStr = c.lastMessage
-                      ? App.timeAgo(c.lastMessage.createdAt)
+                      ? App.timeAgo(c.lastMessage.timestamp)
                       : "";
                     return `
                 <div class="w-conv-item" onclick="App.selectWidgetContact('${c.contact.id}')">
@@ -592,7 +608,7 @@ window.App = {
                     <span class="w-online-dot"></span>
                   </div>
                   <div class="w-conv-info">
-                    <div class="w-conv-name">${c.contact.fullName}</div>
+                    <div class="w-conv-name">${c.contact.fullName || 'Người dùng'}</div>
                     <div class="w-conv-preview${hasUnread ? " unread" : ""}">${c.lastMessage ? c.lastMessage.content : "Bắt đầu trò chuyện..."}</div>
                   </div>
                   <div class="w-conv-meta">
@@ -615,22 +631,25 @@ window.App = {
       `;
     };
 
-    const renderWidgetChat = (contactId) => {
+    const renderWidgetChat = async (contactId) => {
       activeContactId = contactId;
-      const contact = DB.getUserById(contactId);
-      const messages = DB.getMessages(user.id, contactId);
+      const contact = await window.DB.getUserById(contactId);
+      if (!contact) return;
+      const messages = await window.DB.getMessages(user.id, contactId);
       const initials = contact.fullName
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .slice(0, 2);
+        ? contact.fullName
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .slice(0, 2)
+        : "U";
 
       widget.innerHTML = `
         <div class="w-chat-header">
           <button class="widget-icon-btn" onclick="App.backToConvs()"><i class="fa-solid fa-chevron-left"></i></button>
           <div class="w-chat-avatar">${initials}</div>
           <div class="w-chat-name-wrap">
-            <div class="w-chat-name">${contact.fullName}</div>
+            <div class="w-chat-name">${contact.fullName || 'Người dùng'}</div>
             <div class="w-chat-status">Đang hoạt động</div>
           </div>
           <button class="widget-icon-btn" onclick="document.getElementById('chatWidget').classList.remove('active')" title="Đóng"><i class="fa-solid fa-xmark"></i></button>
@@ -650,9 +669,9 @@ window.App = {
       `;
 
       const list = document.getElementById("widgetMsgList");
-      list.scrollTop = list.scrollHeight;
-      DB.markAsRead(user.id, contactId);
-      updateBadge();
+      if (list) list.scrollTop = list.scrollHeight;
+      await window.DB.markAsRead(user.id, contactId);
+      await updateBadge();
     };
 
     // Expose methods globally for widget
@@ -661,13 +680,13 @@ window.App = {
       activeContactId = null;
       renderWidgetConversations();
     };
-    App.handleWidgetSend = (e, toId) => {
+    App.handleWidgetSend = async (e, toId) => {
       e.preventDefault();
       const input = document.getElementById("widgetInput");
       if (!input.value.trim()) return;
-      DB.sendMessage(user.id, toId, input.value.trim());
+      await window.DB.sendMessage(user.id, toId, input.value.trim());
       input.value = "";
-      renderWidgetChat(toId);
+      await renderWidgetChat(toId);
     };
 
     App.openChat = (contactId) => {
@@ -675,8 +694,8 @@ window.App = {
       renderWidgetChat(contactId);
     };
 
-    const updateBadge = () => {
-      const convs = DB.getConversations(user.id);
+    const updateBadge = async () => {
+      const convs = await window.DB.getConversations(user.id);
       const unread = convs.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
       let badge = btn.querySelector(".unread-badge");
       if (unread > 0) {
@@ -692,16 +711,16 @@ window.App = {
     };
 
     updateBadge();
-    setInterval(() => {
-      updateBadge();
+    setInterval(async () => {
+      await updateBadge();
       if (widget.classList.contains("active")) {
         if (activeContactId) {
           const list = document.getElementById("widgetMsgList");
           const countBefore = list ? list.children.length : 0;
-          const msgs = DB.getMessages(user.id, activeContactId);
-          if (msgs.length > countBefore) renderWidgetChat(activeContactId);
+          const msgs = await window.DB.getMessages(user.id, activeContactId);
+          if (msgs.length > countBefore) await renderWidgetChat(activeContactId);
         } else {
-          renderWidgetConversations();
+          await renderWidgetConversations();
         }
       }
     }, 4000);

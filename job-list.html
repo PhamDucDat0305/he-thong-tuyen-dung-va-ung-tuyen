@@ -160,7 +160,7 @@
       </section>
       <footer class="footer" id="footer"></footer>
     </div>
-    <!-- <script type="module" src="js/db.js"></script> -->
+    <script type="module" src="js/db.js"></script>
     <script type="module" src="js/auth.js"></script>
     <script src="js/notifications.js"></script>
     <script type="module" src="js/app.js"></script>
@@ -190,9 +190,9 @@
         if (q)
           jobs = jobs.filter(
             (j) =>
-              j.title.toLowerCase().includes(q) ||
-              j.companyName.toLowerCase().includes(q) ||
-              j.location.toLowerCase().includes(q),
+              (j.title || "").toLowerCase().includes(q) ||
+              (j.companyName || "").toLowerCase().includes(q) ||
+              (j.location || "").toLowerCase().includes(q),
           );
         if (type) jobs = jobs.filter((j) => j.type === type);
         if (exp) jobs = jobs.filter((j) => j.experience === exp);
@@ -214,72 +214,88 @@
       }
 
       async function renderJobs() {
-        document.getElementById("jobList").innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Đang tải danh sách...</div>';
+        const listContainer = document.getElementById("jobList");
+        listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Đang tải danh sách...</div>';
         
-        const jobs = await getFilteredJobs();
-        const { data, totalPages } = window.App.paginate(jobs, currentPage, perPage);
-        document.getElementById("resultCount").textContent =
-          `Tìm thấy ${jobs.length} việc làm`;
+        try {
+          const jobs = await getFilteredJobs();
+          const { data, totalPages } = window.App.paginate(jobs, currentPage, perPage);
+          document.getElementById("resultCount").textContent =
+            `Tìm thấy ${jobs.length} việc làm`;
 
-        if (data.length === 0) {
-          document.getElementById("jobList").innerHTML =
-            `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><h3>Không tìm thấy kết quả</h3><p>Thử thay đổi từ khóa hoặc bộ lọc</p></div>`;
-          document.getElementById("pagination").innerHTML = "";
-          return;
-        }
+          if (data.length === 0) {
+            listContainer.innerHTML =
+              `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><h3>Không tìm thấy kết quả</h3><p>Thử thay đổi từ khóa hoặc bộ lọc</p></div>`;
+            document.getElementById("pagination").innerHTML = "";
+            return;
+          }
 
-        const user = window.Auth.getCurrentUser();
-        const logos = [
-          '<i class="fa-solid fa-laptop-code text-primary"></i>',
-          '<i class="fa-solid fa-building text-info"></i>',
-          '<i class="fa-solid fa-chart-line text-warning"></i>',
-          '<i class="fa-solid fa-palette text-purple"></i>',
-          '<i class="fa-solid fa-mobile-screen text-indigo"></i>',
-          '<i class="fa-solid fa-rocket text-orange"></i>',
-          '<i class="fa-solid fa-bolt text-teal"></i>',
-          '<i class="fa-solid fa-star text-pink"></i>',
-        ];
-        document.getElementById("jobList").innerHTML = data
-          .map((job) => {
-            const saved =
-              user && user.role === "candidate"
-                ? window.DB.isJobSaved(user.id, job.id)
-                : false;
-            const logo = logos[job.title.length % logos.length];
-            return `
-          <div class="job-card animate-fade-up">
-            <div class="job-header">
-              <div class="company-logo">${logo}</div>
-              <div style="flex:1">
-                <div class="job-title">${highlightText(job.title)}</div>
-                <div class="job-company">${highlightText(job.companyName)}</div>
+          const user = window.Auth.getCurrentUser();
+          const logos = [
+            '<i class="fa-solid fa-laptop-code text-primary"></i>',
+            '<i class="fa-solid fa-building text-info"></i>',
+            '<i class="fa-solid fa-chart-line text-warning"></i>',
+            '<i class="fa-solid fa-palette text-purple"></i>',
+            '<i class="fa-solid fa-mobile-screen text-indigo"></i>',
+            '<i class="fa-solid fa-rocket text-orange"></i>',
+            '<i class="fa-solid fa-bolt text-teal"></i>',
+            '<i class="fa-solid fa-star text-pink"></i>',
+          ];
+
+          // Fetch saved jobs for the current candidate once to avoid multiple requests
+          const savedJobIds = new Set();
+          if (user && user.role === "candidate") {
+            const saved = await window.DB.getSavedJobs(user.id);
+            saved.forEach(s => savedJobIds.add(s.jobId));
+          }
+
+          listContainer.innerHTML = data
+            .map((job) => {
+              const saved = savedJobIds.has(job.id);
+              const logo = logos[job.title.length % logos.length];
+              return `
+            <div class="job-card animate-fade-up">
+              <div class="job-header">
+                <div class="company-logo">${logo}</div>
+                <div style="flex:1">
+                  <div class="job-title">${highlightText(job.title)}</div>
+                  <div class="job-company">${highlightText(job.companyName)}</div>
+                </div>
+                ${user && user.role === "candidate" ? `<button class="save-btn ${saved ? "saved" : ""}" onclick="toggleSave('${job.id}', this)" title="${saved ? "Bỏ lưu" : "Lưu việc làm"}"><i class="fa-${saved ? "solid" : "regular"} fa-heart"></i></button>` : ""}
               </div>
-              ${user && user.role === "candidate" ? `<button class="save-btn ${saved ? "saved" : ""}" onclick="toggleSave('${job.id}', this)" title="${saved ? "Bỏ lưu" : "Lưu việc làm"}"><i class="fa-${saved ? "solid" : "regular"} fa-heart"></i></button>` : ""}
-            </div>
-            <div class="job-meta">
-              <span><i class="fa-solid fa-location-dot text-danger"></i> ${job.location}</span>
-              <span><i class="fa-solid fa-money-bill-wave text-success"></i> ${job.salary}</span>
-              <span><i class="fa-solid fa-clock text-info"></i> ${job.type}</span>
-              <span><i class="fa-solid fa-user-tie text-purple"></i> ${job.experience}</span>
-            </div>
-            <div class="job-tags">
-              <span class="badge badge-primary">${job.category}</span>
-              <span class="badge badge-neutral">${job.experience}</span>
-            </div>
-            <div class="job-actions">
-              <a href="../candidate/job-detail.html?id=${job.id}" class="btn btn-sm btn-primary">Xem chi tiết</a>
-              <div class="flex" style="gap:16px;font-size:.82rem;color:var(--text-muted)">
-                <span><i class="fa-solid fa-eye text-warning"></i> ${job.views || 0}</span>
-                <span><i class="fa-solid fa-calendar-days text-indigo"></i> ${window.App.timeAgo(job.createdAt)}</span>
+              <div class="job-meta">
+                <span><i class="fa-solid fa-location-dot text-danger"></i> ${job.location}</span>
+                <span><i class="fa-solid fa-money-bill-wave text-success"></i> ${job.salary}</span>
+                <span><i class="fa-solid fa-clock text-info"></i> ${job.type}</span>
+                <span><i class="fa-solid fa-user-tie text-purple"></i> ${job.experience}</span>
               </div>
-            </div>
+              <div class="job-tags">
+                <span class="badge badge-primary">${job.category}</span>
+                <span class="badge badge-neutral">${job.experience}</span>
+              </div>
+              <div class="job-actions">
+                <a href="job-detail.html?id=${job.id}" class="btn btn-sm btn-primary">Xem chi tiết</a>
+                <div class="flex" style="gap:16px;font-size:.82rem;color:var(--text-muted)">
+                  <span><i class="fa-solid fa-eye text-warning"></i> ${job.views || 0}</span>
+                  <span><i class="fa-solid fa-calendar-days text-indigo"></i> ${window.App.timeAgo(job.createdAt)}</span>
+                </div>
+              </div>
+            </div>`;
+            })
+            .join("");
+
+          // Pagination
+          const pag = document.getElementById("pagination");
+          window.App.renderPagination(pag, totalPages, currentPage, window.changePage);
+        } catch (error) {
+          console.error("Error rendering jobs:", error);
+          listContainer.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+            <div class="empty-icon" style="color: var(--danger)">⚠️</div>
+            <h3>Lỗi tải dữ liệu</h3>
+            <p>Vui lòng kiểm tra quyền truy cập Firestore của bạn.</p>
+            <p style="font-size: 0.8rem; color: var(--text-light)">${error.message}</p>
           </div>`;
-          })
-          .join("");
-
-        // Pagination
-        const pag = document.getElementById("pagination");
-        window.App.renderPagination(pag, totalPages, currentPage, window.changePage);
+        }
       }
 
       window.highlightText = function(text) {
@@ -313,13 +329,13 @@
         document.getElementById("sortBy").value = "newest";
         window.applyFilters();
       }
-      window.toggleSave = function(jobId, btn) {
+      window.toggleSave = async function(jobId, btn) {
         const user = window.Auth.getCurrentUser();
         if (!user) {
           location.href = "auth.html";
           return;
         }
-        const saved = window.DB.toggleSaveJob(user.id, jobId);
+        const saved = await window.DB.toggleSaveJob(user.id, jobId);
         btn.classList.toggle("saved", saved);
         Toast.success(saved ? "Đã lưu việc làm ❤️" : "Đã bỏ lưu");
       }

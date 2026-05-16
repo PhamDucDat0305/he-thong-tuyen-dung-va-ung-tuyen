@@ -172,7 +172,7 @@
               <td data-label="Hình thức"><span class="badge badge-neutral">${interview ? (interview.type === "online" ? "Online" : "Trực tiếp") : "-"}</span></td>
               <td data-label="Hành động">
                 <div class="flex" style="gap:8px">
-                  <button onclick="window.App.openChat('${a.candidateId}')" class="btn btn-xs btn-info" title="Nhắn tin"><i class="fa-solid fa-comments"></i></button>
+                  <button onclick="window.App.openChat('${a.applicantId || a.candidateId}')" class="btn btn-xs btn-info" title="Nhắn tin"><i class="fa-solid fa-comments"></i></button>
                   <button class="btn btn-xs btn-success" onclick="window.updateResult('${a.id}', 'accepted')"><i class="fa-solid fa-check"></i> Đậu</button>
                   <button class="btn btn-xs btn-danger" onclick="window.updateResult('${a.id}', 'failed')"><i class="fa-solid fa-xmark"></i> Không đạt</button>
                 </div>

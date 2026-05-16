@@ -134,7 +134,7 @@
                 <i class="fa-solid fa-briefcase text-success"></i> Gợi ý việc
                 làm
               </h3>
-              <a href="../public/job-list.html" class="btn btn-ghost"
+              <a href="../job-list.html" class="btn btn-ghost"
                 >Xem tất cả →</a
               >
             </div>
@@ -158,7 +158,7 @@
           `👋 Xin chào, ${user.fullName}!`;
 
         const apps = await window.DB.getApplicationsByCandidate(user.id);
-        const saved = window.DB.getSavedJobs(user.id);
+        const saved = await window.DB.getSavedJobs(user.id);
 
         const interviewPromises = apps
           .filter((a) => a.status === "interview_scheduled")

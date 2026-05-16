@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
@@ -119,75 +119,72 @@
     <script type="module" src="../js/app.js"></script>
     <script src="../js/navbar.js"></script>
     <script type="module">
-      const user = window.window.Auth.requireAuth(["employer"]);
-      if (!user) throw "redirect";
-      window.App.renderSidebar("employer", "applied");
-      BadgeNotifier.markSeen(user.id, "emp_applied");
+      document.addEventListener("DOMContentLoaded", async () => {
+        // Wait a tiny bit for other modules to finish attaching to window
+        await new Promise(r => setTimeout(r, 100));
 
-      function render() {
-        const myJobs = DB.getJobsByEmployer(user.id);
-        const allApps = myJobs
-          .flatMap((j) => DB.getApplicationsByJob(j.id))
-          .filter((a) => a.status === "applied") // Chỉ hiện những ứng viên mới nộp
-          .sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt));
+        const user = window.Auth.requireAuth(["employer"]);
+        if (!user) return;
 
-        if (!allApps.length) {
-          document.getElementById("appliedList").innerHTML =
-            '<tr><td colspan="5" class="text-center" style="padding:40px">Chưa có ứng viên nào ứng tuyển</td></tr>';
-          return;
+        if (window.App && window.App.renderSidebar) {
+          window.App.renderSidebar("employer", "applied");
+        }
+        
+        if (window.BadgeNotifier) {
+          window.BadgeNotifier.markSeen(user.id, "emp_applied");
         }
 
-        const statusMap = {
-          applied: [
-            '<i class="fa-solid fa-envelope"></i> Mới ứng tuyển',
-            "badge-info",
-          ],
-          interview_scheduled: [
-            '<i class="fa-solid fa-calendar-check"></i> Đang phỏng vấn',
-            "badge-warning",
-          ],
-          accepted: [
-            '<i class="fa-solid fa-circle-check"></i> Trúng tuyển',
-            "badge-success",
-          ],
-          rejected: [
-            '<i class="fa-solid fa-circle-xmark"></i> Từ chối',
-            "badge-danger",
-          ],
-          failed: [
-            '<i class="fa-solid fa-user-xmark"></i> Không đạt',
-            "badge-dark",
-          ],
-        };
+        async function render(allApps) {
+          const list = document.getElementById("appliedList");
+          const filteredApps = allApps
+              .filter((a) => a.status === "applied")
+              .sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt));
 
-        document.getElementById("appliedList").innerHTML = allApps
-          .map((a) => {
-            const job = DB.getJobById(a.jobId);
-            const [label, cls] = statusMap[a.status] || [
-              "Chưa rõ",
-              "badge-neutral",
-            ];
-            return `
-          <tr>
-            <td data-label="Ứng viên">
-              <div class="flex" style="gap:12px">
-                <div class="avatar" style="width:40px;height:40px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--text);border:1px solid var(--border)">${a.fullName[0]}</div>
-                <div><strong>${a.fullName}</strong><br><span style="font-size:0.85rem;color:var(--text-light)">${a.email}</span></div>
-              </div>
-            </td>
-            <td data-label="Vị trí ứng tuyển"><strong>${job ? job.title : "Đã xóa"}</strong></td>
-            <td data-label="Ngày nộp">${App.formatDate(a.appliedAt)}</td>
-            <td data-label="Trạng thái"><span class="badge ${cls}">${label}</span></td>
-            <td data-label="Thao tác">
-              <a href="job-applicants.html?id=${a.jobId}" class="btn btn-sm btn-light">Xem chi tiết</a>
-            </td>
-          </tr>
-        `;
-          })
-          .join("");
-      }
+          if (!filteredApps.length) {
+            list.innerHTML =
+              '<tr><td colspan="5" class="text-center" style="padding:40px">Chưa có ứng viên nào ứng tuyển</td></tr>';
+            return;
+          }
 
-      render();
+          const statusMap = {
+            applied: ['<i class="fa-solid fa-envelope"></i> Mới ứng tuyển', "badge-info"],
+            interview_scheduled: ['<i class="fa-solid fa-calendar-check"></i> Đang phỏng vấn', "badge-warning"],
+            accepted: ['<i class="fa-solid fa-circle-check"></i> Trúng tuyển', "badge-success"],
+            rejected: ['<i class="fa-solid fa-circle-xmark"></i> Từ chối', "badge-danger"],
+            failed: ['<i class="fa-solid fa-user-xmark"></i> Không đạt', "badge-dark"],
+          };
+
+          const rows = [];
+          for (const a of filteredApps) {
+            const job = await window.DB.getJobById(a.jobId);
+            const [label, cls] = statusMap[a.status] || ["Chưa rõ", "badge-neutral"];
+            rows.push(`
+              <tr>
+                <td data-label="Ứng viên">
+                  <div class="flex" style="gap:12px">
+                    <div class="avatar" style="width:40px;height:40px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--text);border:1px solid var(--border)">${(a.fullName || 'U')[0]}</div>
+                    <div><strong>${a.fullName || 'Người dùng'}</strong><br><span style="font-size:0.85rem;color:var(--text-light)">${a.email || ''}</span></div>
+                  </div>
+                </td>
+                <td data-label="Vị trí ứng tuyển"><strong>${job ? job.title : "Đã xóa"}</strong></td>
+                <td data-label="Ngày nộp">${window.App.formatDate(a.appliedAt)}</td>
+                <td data-label="Trạng thái"><span class="badge ${cls}">${label}</span></td>
+                <td data-label="Thao tác">
+                  <a href="job-applicants.html?id=${a.jobId}" class="btn btn-sm btn-light">Xem chi tiết</a>
+                </td>
+              </tr>
+            `);
+          }
+          list.innerHTML = rows.join("");
+        }
+
+        if (window.DB && window.DB.onApplicationsByRecruiter) {
+          const unsubscribe = window.DB.onApplicationsByRecruiter(user.id, (apps) => {
+            render(apps);
+          });
+          window.addEventListener('unload', () => unsubscribe());
+        }
+      });
     </script>
   </body>
 </html>

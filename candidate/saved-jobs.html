@@ -107,55 +107,65 @@
     <script type="module" src="../js/app.js"></script>
     <script src="../js/navbar.js"></script>
     <script type="module">
-      const user = window.Auth.requireAuth(["candidate"]);
-      if (!user) throw "redirect";
-      window.App.renderSidebar("candidate", "saved_jobs");
+      document.addEventListener("DOMContentLoaded", async () => {
+        // Wait for modules
+        await new Promise(r => setTimeout(r, 100));
 
-      async function renderSaved() {
-        const saved = window.DB.getSavedJobs(user.id);
-        const container = document.getElementById("savedJobsList");
-        
-        if (!saved.length) {
-          container.innerHTML =
-            '<div class="empty-state" style="grid-column: 1 / -1"><div class="empty-icon"><i class="fa-solid fa-bookmark"></i></div><p>Bạn chưa lưu việc làm nào</p></div>';
-          return;
-        }
+        const user = window.Auth.requireAuth(["candidate"]);
+        if (!user) return;
+        window.App.renderSidebar("candidate", "saved_jobs");
 
-        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Đang tải...</div>';
+        async function renderSaved() {
+          const container = document.getElementById("savedJobsList");
+          container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Đang tải...</div>';
+          
+          try {
+            const saved = await window.DB.getSavedJobs(user.id);
+            
+            if (!saved.length) {
+              container.innerHTML =
+                '<div class="empty-state" style="grid-column: 1 / -1"><div class="empty-icon"><i class="fa-solid fa-bookmark"></i></div><p>Bạn chưa lưu việc làm nào</p></div>';
+              return;
+            }
 
-        const jobsHTML = [];
-        for (const s of saved) {
-          const job = await window.DB.getJobById(s.jobId);
-          if (job) {
-            jobsHTML.push(`
-              <div class="card animate-fade-up">
-                <h3 class="mb-2" style="font-size:1.1rem">${job.title}</h3>
-                <p style="color:var(--text-light);font-size:0.9rem;margin-bottom:12px"><i class="fa-solid fa-building"></i> ${job.companyName}</p>
-                <div style="font-size:0.85rem; color:var(--text-light); margin-bottom:16px">
-                  <div><i class="fa-solid fa-location-dot"></i> ${job.location}</div>
-                  <div><i class="fa-solid fa-money-bill-wave"></i> ${job.salary}</div>
-                </div>
-                <div class="flex-between" style="border-top:1px solid var(--border-light); padding-top:12px">
-                  <button class="btn btn-sm btn-outline" onclick="window.toggleSave('${job.id}')">Bỏ lưu</button>
-                  <a href="../job-detail.html?id=${job.id}" class="btn btn-sm btn-primary">Ứng tuyển</a>
-                </div>
-              </div>
-            `);
+            const jobsHTML = [];
+            for (const s of saved) {
+              const job = await window.DB.getJobById(s.jobId);
+              if (job) {
+                jobsHTML.push(`
+                  <div class="card animate-fade-up">
+                    <h3 class="mb-2" style="font-size:1.1rem">${job.title}</h3>
+                    <p style="color:var(--text-light);font-size:0.9rem;margin-bottom:12px"><i class="fa-solid fa-building"></i> ${job.companyName}</p>
+                    <div style="font-size:0.85rem; color:var(--text-light); margin-bottom:16px">
+                      <div><i class="fa-solid fa-location-dot"></i> ${job.location}</div>
+                      <div><i class="fa-solid fa-money-bill-wave"></i> ${job.salary}</div>
+                    </div>
+                    <div class="flex-between" style="border-top:1px solid var(--border-light); padding-top:12px">
+                      <button class="btn btn-sm btn-outline" onclick="window.toggleSave('${job.id}')">Bỏ lưu</button>
+                      <a href="../job-detail.html?id=${job.id}" class="btn btn-sm btn-primary">Ứng tuyển</a>
+                    </div>
+                  </div>
+                `);
+              }
+            }
+            
+            container.innerHTML = jobsHTML.length 
+              ? jobsHTML.join("") 
+              : '<div class="empty-state" style="grid-column: 1 / -1"><div class="empty-icon"><i class="fa-solid fa-bookmark"></i></div><p>Bạn chưa lưu việc làm nào</p></div>';
+          } catch (error) {
+            console.error(error);
+            container.innerHTML = '<p class="text-center text-danger">Lỗi khi tải danh sách đã lưu.</p>';
           }
         }
-        
-        container.innerHTML = jobsHTML.length 
-          ? jobsHTML.join("") 
-          : '<div class="empty-state" style="grid-column: 1 / -1"><div class="empty-icon"><i class="fa-solid fa-bookmark"></i></div><p>Bạn chưa lưu việc làm nào</p></div>';
-      }
 
-      window.toggleSave = function(jobId) {
-        window.DB.toggleSaveJob(user.id, jobId);
+        window.toggleSave = async function(jobId) {
+          await window.DB.toggleSaveJob(user.id, jobId);
+          renderSaved();
+          Toast.info("Đã bỏ lưu việc làm");
+        };
+
         renderSaved();
-        Toast.info("Đã bỏ lưu việc làm");
-      }
-
-      document.addEventListener("DOMContentLoaded", renderSaved);
+      });
     </script>
   </body>
 </html>

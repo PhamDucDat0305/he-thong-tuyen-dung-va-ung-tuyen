@@ -125,7 +125,21 @@
       if (!user) throw "redirect";
       window.App.renderSidebar("employer", "applicants");
 
-      const allCandidates = DB.getUsers().filter((u) => u.role === "candidate");
+      async function initPage() {
+        const container = document.getElementById("candidateList");
+        container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px;">Đang nạp danh sách ứng viên...</div>';
+
+        try {
+          const allUsers = await window.DB.getUsers();
+          const allCandidates = allUsers.filter((u) => u.role === "candidate");
+          
+          window.allCandidates = allCandidates; // Store globally for search
+          render(allCandidates);
+        } catch (error) {
+          console.error(error);
+          container.innerHTML = '<p class="text-center text-danger">Lỗi khi tải dữ liệu ứng viên.</p>';
+        }
+      }
 
       function render(candidates) {
         const container = document.getElementById("candidateList");
@@ -141,9 +155,9 @@
             return `
           <div class="card animate-fade-up flex" style="flex-direction:column; align-items:flex-start; gap:16px; min-height: 280px;">
             <div class="flex" style="gap:16px; width:100%">
-              <div class="avatar" style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg, var(--primary), #38bdf8);display:flex;align-items:center;justify-content:center;font-weight:bold;color:white;font-size:1.2rem">${c.fullName[0]}</div>
+              <div class="avatar" style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg, var(--primary), #38bdf8);display:flex;align-items:center;justify-content:center;font-weight:bold;color:white;font-size:1.2rem">${c.fullName ? c.fullName[0] : 'U'}</div>
               <div>
-                <h3 style="margin-bottom:4px">${c.fullName}</h3>
+                <h3 style="margin-bottom:4px">${c.fullName || 'Người dùng'}</h3>
                 <p style="color:var(--text-light);font-size:0.9rem">${c.title || "Ứng viên mới"}</p>
               </div>
             </div>
@@ -155,7 +169,7 @@
             </div>
             <div class="flex-between" style="width:100%; margin-top:auto; border-top:1px solid var(--border-light); padding-top:16px">
               <button class="btn btn-sm btn-outline" onclick="Toast.success('Đã lưu ứng viên')"><i class="fa-solid fa-heart"></i> Lưu</button>
-              <button class="btn btn-sm btn-primary" onclick="Toast.success('Đã gửi lời mời ứng tuyển')">Gửi lời mời</button>
+              <button class="btn btn-sm btn-primary" onclick="window.App.openChat('${c.id}')">Liên hệ</button>
             </div>
           </div>
         `;
@@ -164,26 +178,17 @@
       }
 
       function handleSearch() {
-        const q = document
+        const keyword = document
           .getElementById("searchInput")
           .value.toLowerCase()
           .trim();
 
-        const filtered = allCandidates.filter((c) => {
-          const name = (c.fullName || "").toLowerCase();
-          const title = (c.title || "").toLowerCase();
-          const loc = (c.location || "").toLowerCase();
-          const exp = (c.experience || "").toLowerCase();
-          const skills = (
-            Array.isArray(c.skills) ? c.skills.join(" ") : ""
-          ).toLowerCase();
+        if (!window.allCandidates) return;
 
+        const filtered = window.allCandidates.filter((user) => {
           return (
-            name.includes(q) ||
-            title.includes(q) ||
-            loc.includes(q) ||
-            exp.includes(q) ||
-            skills.includes(q)
+            user.fullName?.toLowerCase().includes(keyword) ||
+            user.email?.toLowerCase().includes(keyword)
           );
         });
 
@@ -191,12 +196,14 @@
       }
 
       // Initial render
-      render(allCandidates);
+      initPage();
 
       // Add event listener to search input for real-time search
       document
         .getElementById("searchInput")
         .addEventListener("input", handleSearch);
+        
+      window.handleSearch = handleSearch;
     </script>
   </body>
 </html>

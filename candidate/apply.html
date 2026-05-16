@@ -153,7 +153,9 @@
 
           await window.DB.createApplication({
             jobId: jobId,
-            candidateId: user.id,
+            applicantId: user.id,
+            candidateId: user.id, // Keep for fallback
+            recruiterId: job.recruiterId || job.createdBy,
             fullName: document.getElementById("fullName").value.trim(),
             email: document.getElementById("email").value.trim(),
             cv: document.getElementById("cv").value.trim(),

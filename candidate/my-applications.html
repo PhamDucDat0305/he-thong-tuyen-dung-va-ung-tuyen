@@ -149,43 +149,38 @@
     <script src="../js/navbar.js"></script>
     <script type="module">
       document.addEventListener("DOMContentLoaded", async () => {
+        // Wait for modules to initialize
+        await new Promise(r => setTimeout(r, 100));
+
         const user = window.Auth.requireAuth(["candidate"]);
         if (!user) return;
         window.App.renderSidebar("candidate", "my_apps");
-        window.BadgeNotifier.markSeen(user.id, "cand_apps");
+        
+        if (window.BadgeNotifier) {
+          window.BadgeNotifier.markSeen(user.id, "cand_apps");
+        }
 
         document.getElementById("pendingList").innerHTML = "<tr><td colspan='5' class='text-center'>Đang tải...</td></tr>";
         document.getElementById("acceptedList").innerHTML = "<tr><td colspan='5' class='text-center'>Đang tải...</td></tr>";
         document.getElementById("appliedJobsList").innerHTML = "<tr><td colspan='5' class='text-center'>Đang tải...</td></tr>";
 
-        let allApps = await window.DB.getApplicationsByCandidate(user.id);
-        allApps.sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt));
-
         const statusMap = {
-          applied: [
-            '<i class="fa-solid fa-envelope"></i> Đã nộp hồ sơ',
-            "badge-info",
-          ],
-          interview_scheduled: [
-            '<i class="fa-solid fa-calendar-check"></i> Đang phỏng vấn',
-            "badge-warning",
-          ],
-          accepted: [
-            '<i class="fa-solid fa-circle-check"></i> Trúng tuyển',
-            "badge-success",
-          ],
-          rejected: [
-            '<i class="fa-solid fa-circle-xmark"></i> Từ chối',
-            "badge-danger",
-          ],
-          failed: [
-            '<i class="fa-solid fa-user-xmark"></i> Không đạt',
-            "badge-dark",
-          ],
+          applied: ['<i class="fa-solid fa-envelope"></i> Đã nộp hồ sơ', "badge-info"],
+          interview_scheduled: ['<i class="fa-solid fa-calendar-check"></i> Đang phỏng vấn', "badge-warning"],
+          accepted: ['<i class="fa-solid fa-circle-check"></i> Trúng tuyển', "badge-success"],
+          rejected: ['<i class="fa-solid fa-circle-xmark"></i> Từ chối', "badge-danger"],
+          failed: ['<i class="fa-solid fa-user-xmark"></i> Không đạt', "badge-dark"],
         };
 
-        async function renderList(targetId, filterFn) {
-          const filtered = allApps.filter(filterFn);
+        async function renderLists(allApps) {
+          allApps.sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt));
+          
+          await renderList("pendingList", allApps.filter((a) => ["applied", "interview_scheduled"].includes(a.status)));
+          await renderList("acceptedList", allApps.filter((a) => a.status === "accepted"));
+          await renderList("appliedJobsList", allApps);
+        }
+
+        async function renderList(targetId, filtered) {
           const container = document.getElementById(targetId);
 
           if (!filtered.length) {
@@ -219,9 +214,12 @@
           container.innerHTML = rows.join("");
         }
 
-        await renderList("pendingList", (a) => ["applied", "interview_scheduled"].includes(a.status));
-        await renderList("acceptedList", (a) => a.status === "accepted");
-        await renderList("appliedJobsList", (a) => true);
+        // Start realtime listener
+        const unsubscribe = window.DB.onApplicationsByCandidate(user.id, (apps) => {
+          renderLists(apps);
+        });
+        
+        window.addEventListener('unload', () => unsubscribe());
       });
     </script>
   </body>

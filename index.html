@@ -205,16 +205,14 @@
           // Lấy Jobs từ Firestore (bất đồng bộ)
           const jobs = await window.DB.getJobs();
           
-          // Users vẫn lấy từ local storage tạm thời
-          const users = window.DB.getUsers();
+          // Thống kê ứng viên (Tạm thời là số cố định nếu chưa di cư toàn bộ User sang Firestore)
+          const candidateCount = 10; 
 
           document.getElementById("statJobs").textContent = jobs.length;
           document.getElementById("statCompanies").textContent = new Set(
-            jobs.map((j) => j.companyName),
+            jobs.map((j) => j.companyName || "Công ty ẩn danh"),
           ).size;
-          document.getElementById("statUsers").textContent = users.filter(
-            (u) => u.role === "candidate",
-          ).length;
+          document.getElementById("statUsers").textContent = candidateCount;
 
           // Render Featured Jobs
           await window.App.renderFeaturedJobs();

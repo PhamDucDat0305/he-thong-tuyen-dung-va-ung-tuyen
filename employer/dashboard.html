@@ -128,58 +128,69 @@
     <script type="module" src="../js/app.js"></script>
     <script src="../js/navbar.js"></script>
     <script type="module">
-      const user = window.window.Auth.requireAuth(["employer"]);
-      if (!user) throw "r";
-      window.App.renderSidebar("employer", "dashboard");
-      document.getElementById("greeting").textContent =
-        `👋 Xin chào, ${user.fullName}!`;
+      async function initDashboard() {
+        const user = window.Auth.requireAuth(["employer"]);
+        if (!user) return;
+        window.App.renderSidebar("employer", "dashboard");
+        document.getElementById("greeting").textContent =
+          `👋 Xin chào, ${user.fullName}!`;
 
-      const myJobs = DB.getJobsByEmployer(user.id);
-      const allApps = myJobs.flatMap((j) => DB.getApplicationsByJob(j.id));
-      const totalViews = myJobs.reduce((s, j) => s + (j.views || 0), 0);
+        const myJobs = await window.DB.getJobsByEmployer(user.id);
+        
+        const appsPromises = myJobs.map(j => window.DB.getApplicationsByJob(j.id));
+        const allAppsResults = await Promise.all(appsPromises);
+        const allApps = allAppsResults.flat();
+        
+        const totalViews = myJobs.reduce((s, j) => s + (j.views || 0), 0);
 
-      document.getElementById("stats").innerHTML = `
-      <div class="stat-card animate-fade-up"><div class="stat-icon blue"><i class="fa-solid fa-file-lines"></i></div><div class="stat-value">${myJobs.length}</div><div class="stat-label">Tin đã đăng</div></div>
-      <div class="stat-card animate-fade-up"><div class="stat-icon green"><i class="fa-solid fa-envelope-open-text"></i></div><div class="stat-value">${allApps.length}</div><div class="stat-label">Lượt ứng tuyển</div></div>
-      <div class="stat-card animate-fade-up"><div class="stat-icon orange"><i class="fa-solid fa-eye"></i></div><div class="stat-value">${totalViews}</div><div class="stat-label">Lượt xem</div></div>
-      <div class="stat-card animate-fade-up"><div class="stat-icon cyan"><i class="fa-solid fa-hourglass-half"></i></div><div class="stat-value">${allApps.filter((a) => a.status === "pending").length}</div><div class="stat-label">Chờ duyệt</div></div>
-    `;
+        document.getElementById("stats").innerHTML = `
+        <div class="stat-card animate-fade-up"><div class="stat-icon blue"><i class="fa-solid fa-file-lines"></i></div><div class="stat-value">${myJobs.length}</div><div class="stat-label">Tin đã đăng</div></div>
+        <div class="stat-card animate-fade-up"><div class="stat-icon green"><i class="fa-solid fa-envelope-open-text"></i></div><div class="stat-value">${allApps.length}</div><div class="stat-label">Lượt ứng tuyển</div></div>
+        <div class="stat-card animate-fade-up"><div class="stat-icon orange"><i class="fa-solid fa-eye"></i></div><div class="stat-value">${totalViews}</div><div class="stat-label">Lượt xem</div></div>
+        <div class="stat-card animate-fade-up"><div class="stat-icon cyan"><i class="fa-solid fa-hourglass-half"></i></div><div class="stat-value">${allApps.filter((a) => a.status === "pending").length}</div><div class="stat-label">Chờ duyệt</div></div>
+      `;
 
-      // Recent jobs
-      document.getElementById("recentJobs").innerHTML =
-        myJobs
-          .slice(-3)
-          .reverse()
-          .map(
-            (j) => `
-      <div class="dashboard-list-item flex-between">
-        <div><strong class="item-title">${j.title}</strong><br><span class="item-subtitle">${j.salary} · ${j.location}</span></div>
-        <span class="badge badge-info">${DB.getApplicationsByJob(j.id).length} CV</span>
-      </div>
-    `,
-          )
-          .join("") ||
-        '<p style="color:var(--text-light);padding:20px 0">Chưa đăng tin nào</p>';
+        // Recent jobs
+        const recentJobsHTML = [];
+        const recentJobsList = myJobs.slice(-3).reverse();
+        for (const j of recentJobsList) {
+          const apps = await window.DB.getApplicationsByJob(j.id);
+          recentJobsHTML.push(`
+            <div class="dashboard-list-item flex-between">
+              <div><strong class="item-title">${j.title}</strong><br><span class="item-subtitle">${j.salary} · ${j.location}</span></div>
+              <span class="badge badge-info">${apps.length} CV</span>
+            </div>
+          `);
+        }
 
-      // Recent applications
-      const recent = allApps
-        .sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt))
-        .slice(0, 5);
-      document.getElementById("recentApps").innerHTML =
-        recent
-          .map((a) => {
-            const job = DB.getJobById(a.jobId);
-            return `<div class="dashboard-list-item flex-between">
-        <div><strong class="item-title">${a.fullName}</strong><br><span class="item-subtitle">${job ? job.title : "-"} · ${App.timeAgo(a.appliedAt)}</span></div>
-        <span class="badge badge-warning"><i class="fa-solid fa-hourglass-half"></i></span>
-      </div>`;
-          })
-          .join("") ||
-        '<p style="color:var(--text-light);padding:20px 0">Chưa có ứng viên</p>';
+        document.getElementById("recentJobs").innerHTML = recentJobsHTML.join("") ||
+          '<p style="color:var(--text-light);padding:20px 0">Chưa đăng tin nào</p>';
 
-      // Responsive sidebar toggle
-      if (window.innerWidth <= 1024)
-        document.getElementById("sidebarToggle").style.display = "block";
+        // Recent applications
+        const recentApps = allApps
+          .sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt))
+          .slice(0, 5);
+        
+        const recentAppsHTML = [];
+        for (const a of recentApps) {
+          const job = await window.DB.getJobById(a.jobId);
+          recentAppsHTML.push(`<div class="dashboard-list-item flex-between">
+            <div><strong class="item-title">${a.fullName}</strong><br><span class="item-subtitle">${job ? job.title : "-"} · ${window.App.timeAgo(a.appliedAt)}</span></div>
+            <span class="badge badge-warning"><i class="fa-solid fa-hourglass-half"></i></span>
+          </div>`);
+        }
+        
+        document.getElementById("recentApps").innerHTML = recentAppsHTML.join("") ||
+          '<p style="color:var(--text-light);padding:20px 0">Chưa có ứng viên</p>';
+
+        // Responsive sidebar toggle
+        if (window.innerWidth <= 1024) {
+          const toggle = document.getElementById("sidebarToggle");
+          if (toggle) toggle.style.display = "block";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", initDashboard);
     </script>
   </body>
 </html>

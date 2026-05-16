@@ -114,78 +114,80 @@
     <script src="../js/navbar.js"></script>
     <script type="module">
       const user = window.window.Auth.requireAuth(["employer"]);
-      if (!user) throw "r";
+      if (!user) throw "redirect";
       window.App.renderSidebar("employer", "accepted");
 
-      function render() {
-        const myJobs = DB.getJobsByEmployer(user.id);
-        const myJobIds = myJobs.map((j) => j.id);
-
-        const allApps = DB.getApplications();
-        const acceptedApps = allApps.filter(
-          (a) => myJobIds.includes(a.jobId) && a.status === "accepted",
-        );
-
+      async function render() {
         const container = document.getElementById("acceptedCandidates");
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;">Đang nạp danh sách...</div>';
 
-        if (!acceptedApps.length) {
-          container.innerHTML = `
-          <div class="empty-state" style="grid-column: 1/-1; padding: 60px;">
-            <div class="empty-icon"><i class="fa-solid fa-user-check"></i></div>
-            <h3>Chưa có ứng viên trúng tuyển</h3>
-            <p>Hãy xem lại các hồ sơ ứng tuyển để lựa chọn nhân sự phù hợp.</p>
-            <a href="applied-candidates.html" class="btn btn-primary mt-2">Xem hồ sơ ứng tuyển</a>
-          </div>
-        `;
-          return;
+        try {
+          const myJobs = await window.DB.getJobsByEmployer(user.id);
+          const myJobIds = new Set(myJobs.map((j) => j.id));
+
+          const allApps = await window.DB.getApplications();
+          const acceptedApps = allApps.filter(
+            (a) => myJobIds.has(a.jobId) && a.status === "accepted",
+          );
+
+          if (!acceptedApps.length) {
+            container.innerHTML = `
+            <div class="empty-state" style="grid-column: 1/-1; padding: 60px;">
+              <div class="empty-icon"><i class="fa-solid fa-user-check"></i></div>
+              <h3>Chưa có ứng viên trúng tuyển</h3>
+              <p>Hãy xem lại các hồ sơ ứng tuyển để lựa chọn nhân sự phù hợp.</p>
+              <a href="applied-candidates.html" class="btn btn-primary mt-2">Xem hồ sơ ứng tuyển</a>
+            </div>
+          `;
+            return;
+          }
+
+          const htmlParts = [];
+          for (const a of acceptedApps) {
+            const job = await window.DB.getJobById(a.jobId);
+            const candidate = await window.DB.getUserById(a.applicantId || a.candidateId);
+            if (!candidate) continue;
+
+            htmlParts.push(`
+            <div class="card animate-fade-up" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+              <div class="flex" style="gap: 16px;">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--success), #22c55e); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem;">${candidate.fullName ? candidate.fullName[0] : 'U'}</div>
+                <div>
+                  <h3 style="margin-bottom: 4px;">${candidate.fullName || 'Người dùng'}</h3>
+                  <p style="color: var(--text-light); font-size: 0.9rem;">${candidate.title || "Ứng viên"}</p>
+                </div>
+              </div>
+              
+              <div style="padding: 12px; background: var(--bg-light); border-radius: 8px; font-size: 0.85rem;">
+                <div style="margin-bottom: 4px;"><strong class="text-primary">Vị trí:</strong> ${job ? job.title : "N/A"}</div>
+                <div><strong class="text-primary">Email:</strong> ${candidate.email}</div>
+              </div>
+
+              <div class="flex-between" style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border-light);">
+                <span class="badge badge-success"><i class="fa-solid fa-check-double"></i> Đã trúng tuyển</span>
+                <div class="flex" style="gap: 8px;">
+                  <button class="btn btn-sm btn-ghost text-danger" onclick="cancelCollab('${a.id}')" title="Hủy hợp tác"><i class="fa-solid fa-trash-can"></i></button>
+                  <button class="btn btn-sm btn-outline" onclick="Toast.success('Đã gửi thông báo chúc mừng tới ứng viên!')">Gửi thông báo</button>
+                </div>
+              </div>
+            </div>
+          `);
+          }
+          container.innerHTML = htmlParts.join("");
+        } catch (error) {
+          console.error(error);
+          container.innerHTML = '<p class="text-center text-danger">Lỗi khi tải dữ liệu ứng viên.</p>';
         }
-
-        container.innerHTML = acceptedApps
-          .map((a) => {
-            const job = DB.getJobById(a.jobId);
-            const candidate = DB.getUserById(a.candidateId);
-            if (!candidate) return "";
-
-            return `
-          <div class="card animate-fade-up" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
-            <div class="flex" style="gap: 16px;">
-              <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--success), #22c55e); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem;">${candidate.fullName[0]}</div>
-              <div>
-                <h3 style="margin-bottom: 4px;">${candidate.fullName}</h3>
-                <p style="color: var(--text-light); font-size: 0.9rem;">${candidate.title || "Ứng viên"}</p>
-              </div>
-            </div>
-            
-            <div style="padding: 12px; background: var(--bg-light); border-radius: 8px; font-size: 0.85rem;">
-              <div style="margin-bottom: 4px;"><strong class="text-primary">Vị trí:</strong> ${job ? job.title : "N/A"}</div>
-              <div><strong class="text-primary">Email:</strong> ${candidate.email}</div>
-            </div>
-
-            <div class="flex-between" style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border-light);">
-              <span class="badge badge-success"><i class="fa-solid fa-check-double"></i> Đã trúng tuyển</span>
-              <div class="flex" style="gap: 8px;">
-                <button class="btn btn-sm btn-ghost text-danger" onclick="cancelCollab('${a.id}')" title="Hủy hợp tác"><i class="fa-solid fa-trash-can"></i></button>
-                <button class="btn btn-sm btn-outline" onclick="Toast.success('Đã gửi thông báo chúc mừng tới ứng viên!')">Gửi thông báo</button>
-              </div>
-            </div>
-          </div>
-        `;
-          })
-          .join("");
       }
 
-      function cancelCollab(appId) {
-        if (
-          !confirm(
-            "Bạn có chắc chắn muốn hủy hợp tác với ứng viên này? Hồ sơ sẽ bị xóa khỏi danh sách trúng tuyển.",
-          )
-        )
-          return;
-        DB.deleteApplication(appId);
+      async function cancelCollab(appId) {
+        if (!confirm("Bạn có chắc chắn muốn hủy hợp tác với ứng viên này?")) return;
+        await window.DB.updateApplication(appId, { status: "rejected" });
         Toast.success("Đã hủy hợp tác với ứng viên.");
         render();
       }
-
+      
+      window.cancelCollab = cancelCollab;
       render();
     </script>
   </body>

@@ -118,14 +118,14 @@
     <script type="module" src="../js/app.js"></script>
     <script src="../js/navbar.js"></script>
     <script type="module">
-      const user = window.window.Auth.requireAuth(["employer"]);
+      const user = window.Auth.requireAuth(["employer"]);
       if (!user) throw "redirect";
       window.App.renderSidebar("employer", "messages");
 
       let activeContactId = new URLSearchParams(location.search).get("to");
 
-      function renderConversations() {
-        const conversations = DB.getConversations(user.id);
+      async function renderConversations() {
+        const conversations = await window.DB.getConversations(user.id);
         const list = document.getElementById("convList");
 
         if (!conversations.length) {
@@ -136,17 +136,17 @@
 
         list.innerHTML = conversations
           .map((c) => {
-            const initials = c.contact.fullName
+            const initials = (c.contact?.fullName || "??")
               .split(" ")
               .map((n) => n[0])
               .join("")
               .slice(0, 2);
-            const isActive = c.contact.id === activeContactId;
+            const isActive = c.contact?.id === activeContactId;
             return `
-            <div class="conv-item ${isActive ? "active" : ""}" onclick="selectContact('${c.contact.id}')">
+            <div class="conv-item ${isActive ? "active" : ""}" onclick="selectContact('${c.contact?.id}')">
               <div class="conv-avatar">${initials}</div>
               <div class="conv-info">
-                <div class="conv-name">${c.contact.fullName}</div>
+                <div class="conv-name">${c.contact?.fullName || "Ứng viên"}</div>
                 <div class="conv-last-msg">${c.lastMessage ? (c.lastMessage.senderId === user.id ? "Bạn: " : "") + c.lastMessage.content : "Bắt đầu trò chuyện"}</div>
               </div>
               ${c.unreadCount > 0 ? `<div class="conv-unread">${c.unreadCount}</div>` : ""}
@@ -156,23 +156,23 @@
           .join("");
       }
 
-      function selectContact(contactId) {
+      window.selectContact = async function(contactId) {
         activeContactId = contactId;
         const newUrl = window.location.pathname + "?to=" + contactId;
         window.history.pushState({ path: newUrl }, "", newUrl);
 
-        renderConversations();
-        renderChat();
-        DB.markAsRead(user.id, contactId);
+        await renderConversations();
+        await renderChat();
+        await window.DB.markAsRead(user.id, contactId);
       }
 
-      function renderChat() {
+      async function renderChat() {
         if (!activeContactId) return;
 
-        const contact = DB.getUserById(activeContactId);
+        const contact = await window.DB.getUserById(activeContactId);
         if (!contact) return;
 
-        const messages = DB.getMessages(user.id, activeContactId);
+        const messages = await window.DB.getMessages(user.id, activeContactId);
         const initials = contact.fullName
           .split(" ")
           .map((n) => n[0])
@@ -209,38 +209,42 @@
         `;
 
         const msgList = document.getElementById("msgList");
-        msgList.scrollTop = msgList.scrollHeight;
+        if (msgList) msgList.scrollTop = msgList.scrollHeight;
       }
 
-      function handleSend(e) {
+      window.handleSend = async function(e) {
         e.preventDefault();
         const input = document.getElementById("chatInput");
         const content = input.value.trim();
         if (!content || !activeContactId) return;
 
-        DB.sendMessage(user.id, activeContactId, content);
+        await window.DB.sendMessage(user.id, activeContactId, content);
         input.value = "";
-        renderChat();
-        renderConversations();
+        await renderChat();
+        await renderConversations();
       }
 
-      renderConversations();
-      if (activeContactId) {
-        renderChat();
-        DB.markAsRead(user.id, activeContactId);
-      }
-
-      setInterval(() => {
-        renderConversations();
+      document.addEventListener("DOMContentLoaded", async () => {
+        await renderConversations();
         if (activeContactId) {
-          const countBefore =
-            document.getElementById("msgList").children.length;
-          const messages = DB.getMessages(user.id, activeContactId);
+          await renderChat();
+          await window.DB.markAsRead(user.id, activeContactId);
+        }
+      });
+
+      // Auto refresh
+      setInterval(async () => {
+        await renderConversations();
+        if (activeContactId) {
+          const list = document.getElementById("msgList");
+          if (!list) return;
+          const countBefore = list.children.length;
+          const messages = await window.DB.getMessages(user.id, activeContactId);
           if (messages.length > countBefore) {
-            renderChat();
+            await renderChat();
           }
         }
-      }, 3000);
+      }, 5000);
     </script>
   </body>
 </html>

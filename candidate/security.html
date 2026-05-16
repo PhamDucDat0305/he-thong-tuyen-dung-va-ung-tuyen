@@ -174,7 +174,7 @@
       if (!user) throw "redirect";
       window.App.renderSidebar("candidate", "security");
 
-      function changePassword(e) {
+      async function changePassword(e) {
         e.preventDefault();
         const oldP = document.getElementById("oldPass").value;
         const newP = document.getElementById("newPass").value;
@@ -185,34 +185,53 @@
           return;
         }
 
-        const users = JSON.parse(localStorage.getItem("users")) || [];
-        const dbUser = users.find((u) => u.id === user.id);
+        try {
+          const dbUser = await window.DB.getUserById(user.id);
 
-        if (!dbUser || dbUser.password !== oldP) {
-          Toast.error("Mật khẩu hiện tại không đúng!");
-          return;
+          // Note: In a real app with Firebase Auth, you would use auth.updatePassword
+          // Here we follow the requested localStorage -> Firestore mapping logic
+          if (!dbUser || dbUser.password !== oldP) {
+            Toast.error("Mật khẩu hiện tại không đúng!");
+            return;
+          }
+
+          await window.DB.updateUser(user.id, { password: newP });
+          Toast.success("Đổi mật khẩu thành công!");
+          e.target.reset();
+        } catch (error) {
+          Toast.error("Lỗi: " + error.message);
         }
-
-        dbUser.password = newP;
-        localStorage.setItem("users", JSON.stringify(users));
-        Toast.success("Đổi mật khẩu thành công!");
-        e.target.reset();
       }
 
-      let searchStatus = true;
-      function toggleStatus() {
-        searchStatus = !searchStatus;
-        document.getElementById("statusText").textContent = searchStatus
-          ? "Đang bật (Nhà tuyển dụng có thể tìm thấy bạn)"
-          : "Đã tắt (Hồ sơ của bạn đang bị ẩn)";
-        document.getElementById("btnToggleStatus").textContent = searchStatus
-          ? "Tắt"
-          : "Bật";
-        document.getElementById("btnToggleStatus").className = searchStatus
-          ? "btn btn-sm btn-primary"
-          : "btn btn-sm btn-outline";
+      async function toggleStatus() {
+        const dbUser = await window.DB.getUserById(user.id);
+        const newStatus = !dbUser.searchStatus;
+        
+        await window.DB.updateUser(user.id, { searchStatus: newStatus });
+        
+        updateStatusUI(newStatus);
         Toast.success("Đã cập nhật trạng thái tìm việc");
       }
+
+      function updateStatusUI(status) {
+        document.getElementById("statusText").textContent = status
+          ? "Đang bật (Nhà tuyển dụng có thể tìm thấy bạn)"
+          : "Đã tắt (Hồ sơ của bạn đang bị ẩn)";
+        document.getElementById("btnToggleStatus").textContent = status
+          ? "Tắt"
+          : "Bật";
+        document.getElementById("btnToggleStatus").className = status
+          ? "btn btn-sm btn-primary"
+          : "btn btn-sm btn-outline";
+      }
+
+      // Initial load
+      window.DB.getUserById(user.id).then(dbUser => {
+        if (dbUser) updateStatusUI(dbUser.searchStatus !== false);
+      });
+      
+      window.changePassword = changePassword;
+      window.toggleStatus = toggleStatus;
     </script>
   </body>
 </html>
