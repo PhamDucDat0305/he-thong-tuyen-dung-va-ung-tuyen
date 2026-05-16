@@ -1,159 +1,108 @@
-/* ========== LAB LabThucHanh.css ========== */
+/* ========== LAB PAGE STYLES (Simplified) ========== */
 .lab-container {
-  padding: 80px 0;
-  background: var(--bg);
-  flex: 1;
-}
-
-.lab-container {
-  padding: 80px 0;
-  background: var(--bg);
+  padding: 60px 0;
+  background: #f8fafc;
   flex: 1;
 }
 
 .hero-center {
   text-align: center;
+  padding: 60px 0;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.hero-center .hero-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.hero-center h1 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  color: #1e293b;
 }
 
 .hero-center p {
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 600px;
+  margin: 0 auto;
+  color: #64748b;
+  font-size: 1.1rem;
 }
 
 .lab-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 30px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+  margin-top: 40px;
 }
 
 .lab-card {
   background: white;
-  border-radius: 20px;
-  padding: 32px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  border: 1px solid var(--border-light);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
-
-.lab-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(90deg, var(--primary), var(--primary-light));
-  opacity: 0;
-  transition: opacity 0.3s;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 25px;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .lab-card:hover {
-  transform: translateY(-12px);
-  box-shadow: 0 20px 40px rgba(14, 165, 233, 0.12);
-  border-color: var(--primary-light);
-}
-
-.lab-card:hover::before {
-  opacity: 1;
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e1;
 }
 
 .lab-icon-wrapper {
-  width: 60px;
-  height: 60px;
-  background: rgba(14, 165, 233, 0.1);
-  color: var(--primary);
-  border-radius: 16px;
+  width: 50px;
+  height: 50px;
+  background: #f1f5f9;
+  color: #0ea5e9;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
-  margin-bottom: 24px;
-  transition: all 0.3s;
-}
-
-.lab-card:hover .lab-icon-wrapper {
-  background: var(--primary);
-  color: white;
-  transform: rotate(10deg);
+  font-size: 1.5rem;
+  margin-bottom: 20px;
 }
 
 .lab-card h3 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin-bottom: 16px;
-  color: var(--text);
+  font-size: 1.25rem;
+  margin-bottom: 15px;
+  color: #0f172a;
 }
 
 .lab-list {
   list-style: none;
   padding: 0;
-  margin: 0;
-  flex-grow: 1;
 }
 
 .lab-item {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .lab-link {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--bg);
-  border-radius: 12px;
-  color: var(--text);
-  font-weight: 500;
-  transition: all 0.2s;
-  border: 1px solid transparent;
+  padding: 10px 15px;
+  background: #f8fafc;
+  border-radius: 8px;
+  color: #334155;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: background 0.2s;
 }
 
 .lab-link:hover {
-  background: white;
-  color: var(--primary);
-  border-color: var(--primary-light);
-  padding-left: 20px;
+  background: #f1f5f9;
+  color: #0ea5e9;
 }
 
-.lab-link span {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.lab-link i.fa-chevron-right {
+.lab-link i {
   font-size: 0.8rem;
-  opacity: 0.5;
-  transition: transform 0.2s;
+  color: #94a3b8;
 }
 
-.lab-link:hover i.fa-chevron-right {
-  transform: translateX(4px);
-  opacity: 1;
-}
-
+/* Mobile */
 @media (max-width: 768px) {
-  .lab-header {
-    margin-bottom: 40px;
-  }
-  .lab-header h1 {
-    font-size: 2.2rem;
+  .hero-center h1 {
+    font-size: 2rem;
   }
   .lab-grid {
     grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  .lab-card {
-    padding: 24px;
   }
 }
