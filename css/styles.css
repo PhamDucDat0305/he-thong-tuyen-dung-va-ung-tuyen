@@ -1,4 +1,4 @@
-﻿/* ========== VARIABLES & GLOBAL styles.css ========== */
+/* ========== VARIABLES & GLOBAL styles.css ========== */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
 
 :root {
@@ -828,17 +828,18 @@ a {
   from { opacity: 0; transform: translateY(5px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.w-msg-sent {
+.w-msg.sent {
   align-self: flex-end;
-  background: #0084ff;
+  background: linear-gradient(135deg, #0084ff, #00a2ff);
   color: white;
   border-radius: 18px 18px 4px 18px;
-  box-shadow: 0 1px 3px rgba(0,132,255,0.2);
+  box-shadow: 0 4px 12px rgba(0, 132, 255, 0.2);
 }
-.w-msg-received {
+.w-msg.received {
   align-self: flex-start;
-  background: #fff;
-  color: #050505;
+  background: #f3f4f6;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
   border-radius: 18px 18px 18px 4px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }

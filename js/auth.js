@@ -1,4 +1,4 @@
-/* ========== AUTHENTICATION ========== */
+/* ========== AUTHENTICATION LAYER ========== */
 import { auth, db } from "./firebase-config.js";
 import {
   createUserWithEmailAndPassword,
@@ -12,151 +12,157 @@ import {
   getDoc,
 } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
+/**
+ * Authentication management object
+ */
 window.Auth = {
+  /**
+   * Register a new user with Firebase Auth and Firestore
+   */
   async register(username, password, fullName, email, role) {
     try {
-      // 1. Tạo tài khoản trên Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password,
-      );
+      // 1. Create account on Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
 
-      // 2. Tạo dữ liệu người dùng để lưu lên Firestore
+      // 2. Prepare user data for Firestore
       const userData = {
         uid: firebaseUser.uid,
         id: firebaseUser.uid,
-        username: username,
-        email: email,
-        fullName: fullName,
-        role: role,
+        username,
+        email,
+        fullName,
+        role,
         createdAt: new Date().toISOString(),
         status: "active",
       };
 
-      // 3. Ghi vào Collection "users" trên Firestore
+      // 3. Save to "users" collection
       await setDoc(doc(db, "users", firebaseUser.uid), userData);
 
-      // Nếu là nhà tuyển dụng, tạo thêm document công ty rỗng
+      // 4. If employer, create a placeholder company profile
       if (role === "employer") {
         await setDoc(doc(db, "companies", firebaseUser.uid), {
           employerId: firebaseUser.uid,
-          name: fullName + " Company",
+          name: `${fullName} Company`,
           description: "",
           industry: "",
           size: "",
           location: "",
           website: "",
           logo: '<i class="fa-solid fa-building"></i>',
+          createdAt: new Date().toISOString()
         });
       }
 
-      // 4. Lưu tạm vào localStorage để giao diện (UI) nhận diện được người dùng
+      // 5. Update local session
       localStorage.setItem("currentUser", JSON.stringify(userData));
 
-      return {
-        success: true,
-        user: userData,
-      };
+      return { success: true, user: userData };
     } catch (error) {
+      console.error("Auth: register error", error);
       let msg = error.message;
-      if (error.code === "auth/email-already-in-use")
-        msg = "Email này đã được sử dụng.";
-      if (error.code === "auth/weak-password")
-        msg = "Mật khẩu quá yếu (cần ít nhất 6 ký tự).";
+      if (error.code === "auth/email-already-in-use") msg = "Email này đã được sử dụng.";
+      if (error.code === "auth/weak-password") msg = "Mật khẩu quá yếu (cần ít nhất 6 ký tự).";
       return { success: false, message: msg };
     }
   },
 
+  /**
+   * Log in user with email and password
+   */
   async login(email, password) {
     try {
-      // 1. Đăng nhập qua Firebase Auth
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password,
-      );
+      // 1. Sign in via Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
 
-      // 2. Lấy thông tin chi tiết (vai trò, họ tên) từ Firestore
+      // 2. Fetch role and profile from Firestore
       const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
 
       if (!userDoc.exists()) {
         return {
           success: false,
-          message: "Lỗi: Tài khoản có tồn tại nhưng mất dữ liệu phân quyền!",
+          message: "Lỗi: Tài khoản tồn tại nhưng không tìm thấy dữ liệu phân quyền!",
         };
       }
 
       const userData = userDoc.data();
 
-      // 3. Lưu tạm vào localStorage để các file giao diện (app.js) có thể đọc được
+      // 3. Save to local storage
       localStorage.setItem("currentUser", JSON.stringify(userData));
 
-      return {
-        success: true,
-        user: userData,
-      };
+      return { success: true, user: userData };
     } catch (error) {
-      let msg = error.message;
-      if (error.code === "auth/invalid-credential")
+      console.error("Auth: login error", error);
+      let msg = "Email hoặc mật khẩu không chính xác.";
+      if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
         msg = "Email hoặc mật khẩu không chính xác.";
+      }
       return { success: false, message: msg };
     }
   },
 
+  /**
+   * Log out current user
+   */
   async logout() {
-    await signOut(auth);
+    try {
+      await signOut(auth);
+      
+      // Clear local session data
+      localStorage.removeItem("currentUser");
+      sessionStorage.removeItem("loggedInUser");
 
-    // Xóa session ở local
-    localStorage.removeItem("currentUser");
-    sessionStorage.removeItem("loggedInUser");
-
-    const isSubfolder =
-      location.pathname.includes("/employer/") ||
-      location.pathname.includes("/candidate/");
-    const authPath = isSubfolder ? "../auth.html" : "auth.html";
-
-    window.location.href = authPath;
+      // Redirect to auth page based on folder depth
+      const isSubfolder = location.pathname.includes("/employer/") || location.pathname.includes("/candidate/");
+      window.location.href = isSubfolder ? "../auth.html" : "auth.html";
+    } catch (error) {
+      console.error("Auth: logout error", error);
+    }
   },
 
+  /**
+   * Get current logged-in user from local storage
+   */
   getCurrentUser() {
     try {
       const local = localStorage.getItem("currentUser");
-
-      return JSON.parse(local) || null;
-    } catch {
+      return local ? JSON.parse(local) : null;
+    } catch (e) {
       return null;
     }
   },
 
+  /**
+   * Check if user is logged in
+   */
   isLoggedIn() {
     return !!this.getCurrentUser();
   },
 
+  /**
+   * Update current user session data
+   */
   updateSession(userData) {
     const current = this.getCurrentUser();
     if (current) {
-      localStorage.setItem(
-        "currentUser",
-        JSON.stringify({ ...current, ...userData }),
-      );
+      const updated = { ...current, ...userData };
+      localStorage.setItem("currentUser", JSON.stringify(updated));
     }
   },
 
-  changePassword(oldPwd, newPwd) {
-    return { success: false, message: "Tính năng đang được nâng cấp." };
-  },
-
-  requireAuth(allowedRoles) {
+  /**
+   * Check authentication and role requirements for a page
+   * Redirects if requirements are not met
+   */
+  requireAuth(allowedRoles = null) {
     const user = this.getCurrentUser();
-    const isSubfolder =
-      location.pathname.includes("/employer/") ||
-      location.pathname.includes("/candidate/");
+    const isSubfolder = location.pathname.includes("/employer/") || location.pathname.includes("/candidate/");
     const authPath = isSubfolder ? "../auth.html" : "auth.html";
     const indexPath = isSubfolder ? "../index.html" : "index.html";
 
+    // Immediate hide to prevent flicker
     if (!user || (allowedRoles && !allowedRoles.includes(user.role))) {
       document.documentElement.style.display = "none";
     }
@@ -176,18 +182,23 @@ window.Auth = {
     return user;
   },
 };
+
+/**
+ * Global listener for authentication state changes
+ */
 onAuthStateChanged(auth, async (firebaseUser) => {
   if (firebaseUser) {
     try {
+      // Sync local session with Firestore on every auth state change
       const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-
       if (userDoc.exists()) {
         localStorage.setItem("currentUser", JSON.stringify(userDoc.data()));
       }
     } catch (error) {
-      console.error(error);
+      console.error("Auth: Sync error", error);
     }
   } else {
+    // If not logged in on Firebase, clear local session
     localStorage.removeItem("currentUser");
   }
 });

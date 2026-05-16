@@ -18,333 +18,620 @@ import {
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-// Expose onSnapshot for internal use
+// Expose onSnapshot for internal use (mostly in app.js or page scripts)
 window.FirebaseFirestore = { onSnapshot };
 
+/**
+ * Database utility object for Firestore interactions
+ */
 window.DB = {
-  /* === USERS === */
+  /* ================= USERS ================= */
+
+  /**
+   * Fetch all users
+   */
   async getUsers() {
-    const q = collection(db, "users");
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  },
-  async getUserById(id) {
-    if (!id) return null;
-    const d = await getDoc(doc(db, "users", id));
-    return d.exists() ? { id: d.id, ...d.data() } : null;
-  },
-  async updateUser(id, data) {
-    await updateDoc(doc(db, "users", id), {
-      ...data,
-      updatedAt: serverTimestamp()
-    });
+    try {
+      const q = collection(db, "users");
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      console.error("DB: getUsers error", error);
+      return [];
+    }
   },
 
-  /* === JOBS === */
+  /**
+   * Fetch user by ID
+   */
+  async getUserById(userId) {
+    if (!userId) return null;
+    try {
+      const d = await getDoc(doc(db, "users", userId));
+      return d.exists() ? { id: d.id, ...d.data() } : null;
+    } catch (error) {
+      console.error(`DB: getUserById error for ${userId}`, error);
+      return null;
+    }
+  },
+
+  /**
+   * Update user data
+   */
+  async updateUser(userId, data) {
+    try {
+      await updateDoc(doc(db, "users", userId), {
+        ...data,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error(`DB: updateUser error for ${userId}`, error);
+      throw error;
+    }
+  },
+
+  /* ================= JOBS ================= */
+
+  /**
+   * Fetch all active jobs
+   */
   async getJobs() {
-    const q = collection(db, "jobs");
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-  },
-  async getJobById(id) {
-    if (!id) return null;
-    const d = await getDoc(doc(db, "jobs", id));
-    return d.exists() ? { id: d.id, ...d.data() } : null;
-  },
-  async getJobsByEmployer(recruiterId) {
-    const q = query(collection(db, "jobs"), where("recruiterId", "==", recruiterId));
-    const snapshot = await getDocs(q);
-    if (snapshot.empty) {
-      // Fallback for old data
-      const qOld = query(collection(db, "jobs"), where("createdBy", "==", recruiterId));
-      const snapOld = await getDocs(qOld);
-      return snapOld.docs.map(d => ({ id: d.id, ...d.data() }));
+    try {
+      const q = collection(db, "jobs");
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      console.error("DB: getJobs error", error);
+      return [];
     }
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
   },
+
+  /**
+   * Fetch job by ID
+   */
+  async getJobById(jobId) {
+    if (!jobId) return null;
+    try {
+      const d = await getDoc(doc(db, "jobs", jobId));
+      return d.exists() ? { id: d.id, ...d.data() } : null;
+    } catch (error) {
+      console.error(`DB: getJobById error for ${jobId}`, error);
+      return null;
+    }
+  },
+
+  /**
+   * Fetch jobs created by a specific employer
+   */
+  async getJobsByEmployer(employerId) {
+    if (!employerId) return [];
+    try {
+      const q = query(collection(db, "jobs"), where("recruiterId", "==", employerId));
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        // Compatibility fallback for old data using 'createdBy'
+        const qOld = query(collection(db, "jobs"), where("createdBy", "==", employerId));
+        const snapOld = await getDocs(qOld);
+        return snapOld.docs.map(d => ({ id: d.id, ...d.data() }));
+      }
+      
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      console.error(`DB: getJobsByEmployer error for ${employerId}`, error);
+      return [];
+    }
+  },
+
+  /**
+   * Create a new job listing
+   */
   async createJob(data) {
-    const jobData = {
-      ...data,
-      recruiterId: data.recruiterId || data.createdBy,
-      createdAt: new Date().toISOString(),
-      status: "active",
-      views: 0,
-    };
-    const docRef = await addDoc(collection(db, "jobs"), jobData);
-    return { id: docRef.id, ...jobData };
-  },
-  async updateJob(id, data) {
-    await updateDoc(doc(db, "jobs", id), {
-      ...data,
-      updatedAt: new Date().toISOString()
-    });
-    return await this.getJobById(id);
-  },
-  async deleteJob(id) {
-    await deleteDoc(doc(db, "jobs", id));
-  },
-  async incrementJobViews(id) {
-    const job = await this.getJobById(id);
-    if (job) {
-      await updateDoc(doc(db, "jobs", id), { views: (job.views || 0) + 1 });
+    try {
+      const jobData = {
+        ...data,
+        recruiterId: data.recruiterId || data.createdBy,
+        createdAt: new Date().toISOString(),
+        status: "active",
+        views: 0,
+      };
+      const docRef = await addDoc(collection(db, "jobs"), jobData);
+      return { id: docRef.id, ...jobData };
+    } catch (error) {
+      console.error("DB: createJob error", error);
+      throw error;
     }
   },
 
-  /* === APPLICATIONS === */
+  /**
+   * Update an existing job
+   */
+  async updateJob(jobId, data) {
+    try {
+      await updateDoc(doc(db, "jobs", jobId), {
+        ...data,
+        updatedAt: new Date().toISOString()
+      });
+      return await this.getJobById(jobId);
+    } catch (error) {
+      console.error(`DB: updateJob error for ${jobId}`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete a job listing
+   */
+  async deleteJob(jobId) {
+    try {
+      await deleteDoc(doc(db, "jobs", jobId));
+    } catch (error) {
+      console.error(`DB: deleteJob error for ${jobId}`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Increment view counter for a job
+   */
+  async incrementJobViews(jobId) {
+    try {
+      const job = await this.getJobById(jobId);
+      if (job) {
+        await updateDoc(doc(db, "jobs", jobId), { views: (job.views || 0) + 1 });
+      }
+    } catch (error) {
+      console.warn(`DB: incrementJobViews error for ${jobId}`, error);
+    }
+  },
+
+  /* ================= APPLICATIONS ================= */
+
+  /**
+   * Fetch all applications
+   */
   async getApplications() {
-    const q = collection(db, "applications");
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    try {
+      const q = collection(db, "applications");
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      console.error("DB: getApplications error", error);
+      return [];
+    }
   },
-  async getApplicationById(id) {
-    if (!id) return null;
-    const d = await getDoc(doc(db, "applications", id));
-    return d.exists() ? { id: d.id, ...d.data() } : null;
+
+  /**
+   * Fetch application by ID
+   */
+  async getApplicationById(applicationId) {
+    if (!applicationId) return null;
+    try {
+      const d = await getDoc(doc(db, "applications", applicationId));
+      return d.exists() ? { id: d.id, ...d.data() } : null;
+    } catch (error) {
+      console.error(`DB: getApplicationById error for ${applicationId}`, error);
+      return null;
+    }
   },
+
+  /**
+   * Fetch applications for a specific job
+   */
   async getApplicationsByJob(jobId) {
-    const q = query(collection(db, "applications"), where("jobId", "==", jobId));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  },
-  async getApplicationsByCandidate(applicantId) {
-    const q = query(collection(db, "applications"), where("applicantId", "==", applicantId));
-    const snap = await getDocs(q);
-    if (snap.empty) {
-      const qOld = query(collection(db, "applications"), where("candidateId", "==", applicantId));
-      const snapOld = await getDocs(qOld);
-      return snapOld.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (!jobId) return [];
+    try {
+      const q = query(collection(db, "applications"), where("jobId", "==", jobId));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      console.error(`DB: getApplicationsByJob error for ${jobId}`, error);
+      return [];
     }
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   },
+
+  /**
+   * Fetch applications submitted by a candidate
+   */
+  async getApplicationsByCandidate(candidateId) {
+    if (!candidateId) return [];
+    try {
+      const q = query(collection(db, "applications"), where("applicantId", "==", candidateId));
+      const snap = await getDocs(q);
+      
+      if (snap.empty) {
+        // Compatibility fallback for old data using 'candidateId' as field
+        const qOld = query(collection(db, "applications"), where("candidateId", "==", candidateId));
+        const snapOld = await getDocs(qOld);
+        return snapOld.docs.map(d => ({ id: d.id, ...d.data() }));
+      }
+      
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      console.error(`DB: getApplicationsByCandidate error for ${candidateId}`, error);
+      return [];
+    }
+  },
+
+  /**
+   * Check if a candidate has already applied to a job
+   */
   async hasApplied(jobId, candidateId) {
-    const q = query(collection(db, "applications"), where("jobId", "==", jobId), where("candidateId", "==", candidateId));
-    const snap = await getDocs(q);
-    return !snap.empty;
-  },
-  async createApplication(data) {
-    const appData = {
-      ...data,
-      applicantId: data.applicantId || data.candidateId,
-      status: "applied",
-      appliedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    // CRITICAL: Ensure recruiterId is present for fast querying
-    if (!appData.recruiterId && appData.jobId) {
-      const job = await this.getJobById(appData.jobId);
-      if (job) appData.recruiterId = job.recruiterId || job.createdBy;
-    }
-    const docRef = await addDoc(collection(db, "applications"), appData);
-    return { id: docRef.id, ...appData };
-  },
-  // Realtime listeners
-  onApplicationsByRecruiter(recruiterId, callback) {
-    const { onSnapshot } = window.FirebaseFirestore;
-    const q = query(collection(db, "applications")); // Listen to all, filter client-side for robustness
-    return onSnapshot(q, async (snap) => {
-      const allApps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      
-      // Filter apps where recruiterId matches OR jobId belongs to this recruiter
-      // We do this by checking recruiterId first, then falling back to job lookup
-      const myJobs = await this.getJobsByEmployer(recruiterId);
-      const myJobIds = new Set(myJobs.map(j => j.id));
-      
-      const filtered = allApps.filter(a => 
-        a.recruiterId === recruiterId || myJobIds.has(a.jobId)
-      );
-      callback(filtered);
-    });
-  },
-  onApplicationsByCandidate(applicantId, callback) {
-    const { onSnapshot } = window.FirebaseFirestore;
-    const q = query(collection(db, "applications")); // Listen all for compatibility
-    return onSnapshot(q, (snap) => {
-      const allApps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const filtered = allApps.filter(a => 
-        a.applicantId === applicantId || a.candidateId === applicantId
-      );
-      callback(filtered);
-    });
-  },
-  async updateApplication(id, data) {
-    await updateDoc(doc(db, "applications", id), {
-      ...data,
-      updatedAt: new Date().toISOString()
-    });
-    return await this.getApplicationById(id);
-  },
+    if (!jobId || !candidateId) return false;
+    try {
+      // Check both field name variants
+      const q1 = query(collection(db, "applications"), where("jobId", "==", jobId), where("applicantId", "==", candidateId));
+      const snap1 = await getDocs(q1);
+      if (!snap1.empty) return true;
 
-  /* === INTERVIEWS === */
-  async getInterviews() {
-    const q = collection(db, "interviews");
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  },
-  async getInterviewByApplication(appId) {
-    const q = query(collection(db, "interviews"), where("applicationId", "==", appId));
-    const snap = await getDocs(q);
-    return snap.empty ? null : { id: snap.docs[0].id, ...snap.docs[0].data() };
-  },
-  async scheduleInterview(appId, data) {
-    const interviewData = {
-      applicationId: appId,
-      ...data,
-      createdAt: new Date().toISOString(),
-    };
-    const docRef = await addDoc(collection(db, "interviews"), interviewData);
-    await this.updateApplication(appId, { status: "interview_scheduled" });
-    return { id: docRef.id, ...interviewData };
-  },
-
-  /* === SAVED JOBS === */
-  async getSavedJobs(userId) {
-    const q = query(collection(db, "savedJobs"), where("userId", "==", userId));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  },
-  async isJobSaved(userId, jobId) {
-    const q = query(collection(db, "savedJobs"), where("userId", "==", userId), where("jobId", "==", jobId));
-    const snap = await getDocs(q);
-    return !snap.empty;
-  },
-  async toggleSaveJob(userId, jobId) {
-    const q = query(collection(db, "savedJobs"), where("userId", "==", userId), where("jobId", "==", jobId));
-    const snap = await getDocs(q);
-    if (!snap.empty) {
-      await deleteDoc(doc(db, "savedJobs", snap.docs[0].id));
+      const q2 = query(collection(db, "applications"), where("jobId", "==", jobId), where("candidateId", "==", candidateId));
+      const snap2 = await getDocs(q2);
+      return !snap2.empty;
+    } catch (error) {
       return false;
-    } else {
-      await addDoc(collection(db, "savedJobs"), {
-        userId,
-        jobId,
-        savedAt: new Date().toISOString()
-      });
-      return true;
     }
   },
 
-  /* === COMPANIES === */
-  async getCompanyByEmployer(employerId) {
-    const d = await getDoc(doc(db, "companies", employerId));
-    return d.exists() ? { id: d.id, ...d.data() } : null;
-  },
-  async createCompany(employerId, data) {
-    await setDoc(doc(db, "companies", employerId), {
-      employerId,
-      ...data,
-      createdAt: new Date().toISOString()
-    });
-  },
-  async updateCompany(employerId, data) {
-    await updateDoc(doc(db, "companies", employerId), {
-      ...data,
-      updatedAt: new Date().toISOString()
-    });
-  },
-
-  /* === MESSAGES === */
-  async getMessages(userId, contactId) {
-    // Note: This is a simplified fetch. For better performance, use a conversationId or composite index.
-    const q1 = query(collection(db, "messages"), where("senderId", "==", userId), where("receiverId", "==", contactId));
-    const q2 = query(collection(db, "messages"), where("senderId", "==", contactId), where("receiverId", "==", userId));
-    const [s1, s2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-    const msgs = [...s1.docs, ...s2.docs].map(d => ({ id: d.id, ...d.data() }));
-    return msgs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-  },
-  async sendMessage(senderId, receiverId, content) {
-    const msg = {
-      senderId,
-      receiverId,
-      content,
-      timestamp: new Date().toISOString(),
-      read: false,
-    };
-    const docRef = await addDoc(collection(db, "messages"), msg);
-    return { id: docRef.id, ...msg };
-  },
-  async getConversations(userId) {
-    // Get all messages where user is involved
-    const q1 = query(collection(db, "messages"), where("senderId", "==", userId));
-    const q2 = query(collection(db, "messages"), where("receiverId", "==", userId));
-    const [s1, s2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-    const allMsgs = [...s1.docs, ...s2.docs].map(d => d.data());
-    
-    const contacts = new Set();
-    allMsgs.forEach(m => {
-      if (m.senderId === userId) contacts.add(m.receiverId);
-      else contacts.add(m.senderId);
-    });
-
-    const results = [];
-    for (const cId of contacts) {
-      const contact = await this.getUserById(cId);
-      const contactMsgs = allMsgs.filter(m => m.senderId === cId || m.receiverId === cId);
-      const lastMsg = contactMsgs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
-      const unreadCount = contactMsgs.filter(m => m.receiverId === userId && !m.read).length;
+  /**
+   * Create a new job application
+   */
+  async createApplication(data) {
+    try {
+      const appData = {
+        ...data,
+        applicantId: data.applicantId || data.candidateId,
+        status: "applied",
+        appliedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
       
-      results.push({
-        contact,
-        lastMessage: lastMsg,
-        unreadCount
-      });
+      // Auto-fill recruiterId if missing for efficient dashboard queries
+      if (!appData.recruiterId && appData.jobId) {
+        const job = await this.getJobById(appData.jobId);
+        if (job) appData.recruiterId = job.recruiterId || job.createdBy;
+      }
+      
+      const docRef = await addDoc(collection(db, "applications"), appData);
+      return { id: docRef.id, ...appData };
+    } catch (error) {
+      console.error("DB: createApplication error", error);
+      throw error;
     }
-    return results;
-  },
-  async markAsRead(userId, contactId) {
-    const q = query(collection(db, "messages"), where("senderId", "==", contactId), where("receiverId", "==", userId), where("read", "==", false));
-    const snap = await getDocs(q);
-    const promises = snap.docs.map(d => updateDoc(doc(db, "messages", d.id), { read: true }));
-    await Promise.all(promises);
   },
 
-  /* === MIGRATION TOOL === */
+  /**
+   * Realtime listener for recruiter's applications
+   */
+  onApplicationsByRecruiter(recruiterId, callback) {
+    if (!recruiterId) return () => {};
+    try {
+      const { onSnapshot } = window.FirebaseFirestore;
+      const q = query(collection(db, "applications"), where("recruiterId", "==", recruiterId)); 
+      
+      return onSnapshot(q, (snap) => {
+        const apps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        callback(apps);
+      });
+    } catch (error) {
+      console.error("DB: onApplicationsByRecruiter error", error);
+      return () => {};
+    }
+  },
+
+  /**
+   * Realtime listener for candidate's applications
+   */
+  onApplicationsByCandidate(candidateId, callback) {
+    if (!candidateId) return () => {};
+    try {
+      const { onSnapshot } = window.FirebaseFirestore;
+      const q = query(collection(db, "applications"), where("applicantId", "==", candidateId));
+      
+      return onSnapshot(q, (snap) => {
+        const apps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        callback(apps);
+      });
+    } catch (error) {
+      console.error("DB: onApplicationsByCandidate error", error);
+      return () => {};
+    }
+  },
+
+  async updateApplication(applicationId, data) {
+    try {
+      await updateDoc(doc(db, "applications", applicationId), {
+        ...data,
+        updatedAt: new Date().toISOString()
+      });
+      return await this.getApplicationById(applicationId);
+    } catch (error) {
+      console.error(`DB: updateApplication error for ${applicationId}`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete an application (Cancel application)
+   */
+  async deleteApplication(applicationId) {
+    try {
+      await deleteDoc(doc(db, "applications", applicationId));
+    } catch (error) {
+      console.error(`DB: deleteApplication error for ${applicationId}`, error);
+      throw error;
+    }
+  },
+
+  /* ================= INTERVIEWS ================= */
+
+  /**
+   * Fetch all scheduled interviews
+   */
+  async getInterviews() {
+    try {
+      const q = collection(db, "interviews");
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      return [];
+    }
+  },
+
+  /**
+   * Fetch interview details for an application
+   */
+  async getInterviewByApplication(applicationId) {
+    try {
+      const q = query(collection(db, "interviews"), where("applicationId", "==", applicationId));
+      const snap = await getDocs(q);
+      return snap.empty ? null : { id: snap.docs[0].id, ...snap.docs[0].data() };
+    } catch (error) {
+      return null;
+    }
+  },
+
+  /**
+   * Schedule a new interview
+   */
+  async scheduleInterview(applicationId, data) {
+    try {
+      const interviewData = {
+        applicationId,
+        ...data,
+        createdAt: new Date().toISOString(),
+      };
+      const docRef = await addDoc(collection(db, "interviews"), interviewData);
+      await this.updateApplication(applicationId, { status: "interview_scheduled" });
+      return { id: docRef.id, ...interviewData };
+    } catch (error) {
+      console.error("DB: scheduleInterview error", error);
+      throw error;
+    }
+  },
+
+  /* ================= SAVED JOBS ================= */
+
+  /**
+   * Fetch candidate's saved jobs
+   */
+  async getSavedJobs(userId) {
+    try {
+      const q = query(collection(db, "savedJobs"), where("userId", "==", userId));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      return [];
+    }
+  },
+
+  /**
+   * Toggle job save status (Save/Unsave)
+   */
+  async toggleSaveJob(userId, jobId) {
+    try {
+      const q = query(collection(db, "savedJobs"), where("userId", "==", userId), where("jobId", "==", jobId));
+      const snap = await getDocs(q);
+      
+      if (!snap.empty) {
+        await deleteDoc(doc(db, "savedJobs", snap.docs[0].id));
+        return false;
+      } else {
+        await addDoc(collection(db, "savedJobs"), {
+          userId,
+          jobId,
+          savedAt: new Date().toISOString()
+        });
+        return true;
+      }
+    } catch (error) {
+      console.error("DB: toggleSaveJob error", error);
+      return false;
+    }
+  },
+
+  /* ================= COMPANIES ================= */
+
+  /**
+   * Fetch company profile by employer ID
+   */
+  async getCompanyByEmployer(employerId) {
+    if (!employerId) return null;
+    try {
+      const d = await getDoc(doc(db, "companies", employerId));
+      return d.exists() ? { id: d.id, ...d.data() } : null;
+    } catch (error) {
+      return null;
+    }
+  },
+
+  /**
+   * Create or update company profile
+   */
+  async createCompany(employerId, data) {
+    try {
+      await setDoc(doc(db, "companies", employerId), {
+        employerId,
+        ...data,
+        createdAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("DB: createCompany error", error);
+    }
+  },
+
+  /**
+   * Update company details
+   */
+  async updateCompany(employerId, data) {
+    try {
+      await updateDoc(doc(db, "companies", employerId), {
+        ...data,
+        updatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("DB: updateCompany error", error);
+    }
+  },
+
+  /* ================= MESSAGES ================= */
+
+  /**
+   * Fetch chat history between two users
+   */
+  async getMessages(userId, contactId) {
+    try {
+      const q1 = query(collection(db, "messages"), where("senderId", "==", userId), where("receiverId", "==", contactId));
+      const q2 = query(collection(db, "messages"), where("senderId", "==", contactId), where("receiverId", "==", userId));
+      
+      const [s1, s2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+      const msgs = [...s1.docs, ...s2.docs].map(d => ({ id: d.id, ...d.data() }));
+      return msgs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    } catch (error) {
+      return [];
+    }
+  },
+
+  /**
+   * Send a new chat message
+   */
+  async sendMessage(senderId, receiverId, content) {
+    try {
+      const msg = {
+        senderId,
+        receiverId,
+        content,
+        timestamp: new Date().toISOString(),
+        read: false,
+      };
+      const docRef = await addDoc(collection(db, "messages"), msg);
+      return { id: docRef.id, ...msg };
+    } catch (error) {
+      console.error("DB: sendMessage error", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Fetch all conversations for a user
+   */
+  async getConversations(userId) {
+    try {
+      const q1 = query(collection(db, "messages"), where("senderId", "==", userId));
+      const q2 = query(collection(db, "messages"), where("receiverId", "==", userId));
+      const [s1, s2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+      const allMsgs = [...s1.docs, ...s2.docs].map(d => ({ id: d.id, ...d.data() }));
+      
+      const contacts = new Set();
+      allMsgs.forEach(m => {
+        if (m.senderId === userId) contacts.add(m.receiverId);
+        else contacts.add(m.senderId);
+      });
+
+      const results = [];
+      for (const cId of contacts) {
+        const contact = await this.getUserById(cId);
+        const contactMsgs = allMsgs.filter(m => m.senderId === cId || m.receiverId === cId);
+        const sorted = contactMsgs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        const lastMsg = sorted[0];
+        const unreadCount = contactMsgs.filter(m => m.receiverId === userId && !m.read).length;
+        
+        results.push({
+          contact,
+          lastMessage: lastMsg,
+          unreadCount
+        });
+      }
+      return results;
+    } catch (error) {
+      console.error("DB: getConversations error", error);
+      return [];
+    }
+  },
+
+  /**
+   * Mark messages as read
+   */
+  async markAsRead(userId, contactId) {
+    try {
+      const q = query(collection(db, "messages"), where("senderId", "==", contactId), where("receiverId", "==", userId), where("read", "==", false));
+      const snap = await getDocs(q);
+      const promises = snap.docs.map(d => updateDoc(doc(db, "messages", d.id), { read: true }));
+      await Promise.all(promises);
+    } catch (error) {
+      // Ignore
+    }
+  },
+
+  /* ================= MIGRATION TOOL ================= */
+
+  /**
+   * Migrate legacy data from LocalStorage to Firestore
+   */
   async migrateFromLocalStorage() {
     const collections = ["jobs", "users", "applications", "companies", "interviews", "messages", "savedJobs"];
     let migratedCount = 0;
 
     for (const key of collections) {
       const data = localStorage.getItem(key);
-      if (data) {
-        try {
-          const items = JSON.parse(data);
-          if (Array.isArray(items)) {
-            for (const item of items) {
-              const id = item.id;
-              if (id) {
-                const dataToSave = { ...item };
-                delete dataToSave.id;
-                // Normalize field names during migration
-                if (key === "jobs") {
-                  dataToSave.recruiterId = dataToSave.recruiterId || dataToSave.createdBy;
+      if (!data) continue;
+
+      try {
+        const items = JSON.parse(data);
+        if (Array.isArray(items)) {
+          for (const item of items) {
+            const id = item.id;
+            const dataToSave = { ...item };
+            delete dataToSave.id;
+
+            // Normalization
+            if (key === "jobs") dataToSave.recruiterId = dataToSave.recruiterId || dataToSave.createdBy;
+            if (key === "applications") {
+              dataToSave.applicantId = dataToSave.applicantId || dataToSave.candidateId;
+              if (!dataToSave.recruiterId && dataToSave.jobId) {
+                const jobsData = localStorage.getItem("jobs");
+                if (jobsData) {
+                  const jobs = JSON.parse(jobsData);
+                  const job = jobs.find(j => j.id === dataToSave.jobId);
+                  if (job) dataToSave.recruiterId = job.recruiterId || job.createdBy;
                 }
-                if (key === "applications") {
-                  dataToSave.applicantId = dataToSave.applicantId || dataToSave.candidateId;
-                  // Try to find recruiterId from jobs
-                  if (!dataToSave.recruiterId && dataToSave.jobId) {
-                    const jobsData = localStorage.getItem("jobs");
-                    if (jobsData) {
-                      const jobs = JSON.parse(jobsData);
-                      const job = jobs.find(j => j.id === dataToSave.jobId);
-                      if (job) dataToSave.recruiterId = job.recruiterId || job.createdBy;
-                    }
-                  }
-                }
-                await setDoc(doc(db, key, id), dataToSave);
-              } else {
-                await addDoc(collection(db, key), item);
               }
             }
-          } else if (typeof items === 'object') {
-            // Handle single object if any (unlikely given _get implementation)
+
+            if (id) {
+              await setDoc(doc(db, key, id), dataToSave);
+            } else {
+              await addDoc(collection(db, key), dataToSave);
+            }
           }
-          localStorage.removeItem(key);
-          migratedCount++;
-          console.log(`Migrated ${key} successfully.`);
-        } catch (e) {
-          console.error(`Failed to migrate ${key}:`, e);
         }
+        localStorage.removeItem(key);
+        migratedCount++;
+        console.info(`Migrated ${key} successfully.`);
+      } catch (e) {
+        console.error(`Failed to migrate ${key}:`, e);
       }
     }
+
     if (migratedCount > 0) {
       console.log("Migration complete. Refreshing...");
       location.reload();
@@ -353,12 +640,8 @@ window.DB = {
 };
 
 // Check for migration on load
-if (localStorage.getItem("currentUser")) {
-  // If we have a user, check if we need to migrate their old local data
-  // Only do this once
-  if (!localStorage.getItem("migration_done")) {
-    window.DB.migrateFromLocalStorage().then(() => {
-       localStorage.setItem("migration_done", "true");
-    });
-  }
+if (localStorage.getItem("currentUser") && !localStorage.getItem("migration_done")) {
+  window.DB.migrateFromLocalStorage().then(() => {
+    localStorage.setItem("migration_done", "true");
+  });
 }

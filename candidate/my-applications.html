@@ -110,36 +110,9 @@
           </div>
         </div>
 
-        <div class="card mb-3">
-          <h3 class="mb-2">
-            <i class="fa-solid fa-circle-check text-success"></i> Đã trúng tuyển
-          </h3>
-          <div class="table-wrapper">
-            <table class="table">
-              <tbody id="acceptedList"></tbody>
-            </table>
-          </div>
-        </div>
 
-        <div class="card">
-          <h3 class="mb-2">
-            <i class="fa-solid fa-list-check text-info"></i> Tất cả hồ sơ đã nộp
-          </h3>
-          <div class="table-wrapper">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Công việc</th>
-                  <th>Công ty</th>
-                  <th>Ngày nộp</th>
-                  <th>Trạng thái</th>
-                  <th>Hành động</th>
-                </tr>
-              </thead>
-              <tbody id="appliedJobsList"></tbody>
-            </table>
-          </div>
-        </div>
+
+
       </main>
     </div>
     <script type="module" src="../js/db.js"></script>
@@ -161,8 +134,8 @@
         }
 
         document.getElementById("pendingList").innerHTML = "<tr><td colspan='5' class='text-center'>Đang tải...</td></tr>";
-        document.getElementById("acceptedList").innerHTML = "<tr><td colspan='5' class='text-center'>Đang tải...</td></tr>";
-        document.getElementById("appliedJobsList").innerHTML = "<tr><td colspan='5' class='text-center'>Đang tải...</td></tr>";
+
+
 
         const statusMap = {
           applied: ['<i class="fa-solid fa-envelope"></i> Đã nộp hồ sơ', "badge-info"],
@@ -176,9 +149,17 @@
           allApps.sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt));
           
           await renderList("pendingList", allApps.filter((a) => ["applied", "interview_scheduled"].includes(a.status)));
-          await renderList("acceptedList", allApps.filter((a) => a.status === "accepted"));
-          await renderList("appliedJobsList", allApps);
         }
+
+        window.cancelApplication = async (appId) => {
+          if (!confirm("Bạn có chắc chắn muốn hủy ứng tuyển công việc này?")) return;
+          try {
+            await window.DB.deleteApplication(appId);
+            alert("Đã hủy ứng tuyển thành công.");
+          } catch (error) {
+            alert("Lỗi khi hủy ứng tuyển: " + error.message);
+          }
+        };
 
         async function renderList(targetId, filtered) {
           const container = document.getElementById(targetId);
@@ -207,7 +188,10 @@
                 <td data-label="Công ty">${job ? job.companyName : "-"}</td>
                 <td data-label="Ngày nộp">${window.App.formatDate(a.appliedAt)}</td>
                 <td data-label="Trạng thái"><span class="badge ${cls}">${label}</span></td>
-                <td data-label="Hành động">${job ? `<button onclick="window.location.href='../job-detail.html?id=${job.id}'" class="btn btn-sm btn-ghost">Xem lại tin</button>` : ""}</td>
+                <td data-label="Hành động">
+                  ${job ? `<button onclick="window.location.href='../job-detail.html?id=${job.id}'" class="btn btn-sm btn-ghost">Xem tin</button>` : ""}
+                  <button onclick="window.cancelApplication('${a.id}')" class="btn btn-sm btn-danger"><i class="fa-solid fa-trash-can"></i> Hủy</button>
+                </td>
               </tr>
              `);
           }
