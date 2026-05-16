@@ -97,66 +97,75 @@
       </div>
     </section>
     <footer class="footer" id="footer"></footer>
-    <script src="../js/db.js"></script>
-    <script src="../js/auth.js"></script>
+    <script type="module" src="../js/db.js"></script>
+    <script type="module" src="../js/auth.js"></script>
     <script src="../js/notifications.js"></script>
-    <script src="../js/app.js"></script>
+    <script type="module" src="../js/app.js"></script>
     <script src="../js/navbar.js"></script>
-    <script>
-      const user = Auth.requireAuth(["candidate"]);
-      App.renderFooter();
+    <script type="module">
+      document.addEventListener("DOMContentLoaded", async () => {
+        const user = window.Auth.requireAuth(["candidate"]);
+        if (!user) return;
+        window.App.renderFooter();
 
-      const jobId = new URLSearchParams(location.search).get("jobId");
-      const job = DB.getJobById(jobId);
-      const card = document.getElementById("applyCard");
+        const jobId = new URLSearchParams(location.search).get("jobId");
+        const job = await window.DB.getJobById(jobId);
+        const card = document.getElementById("applyCard");
 
-      if (!job) {
-        card.innerHTML =
-          '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-circle-xmark"></i></div><h3>Không tìm thấy việc làm</h3></div>';
-      } else if (DB.hasApplied(jobId, user.id)) {
-        card.innerHTML =
-          '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-circle-check"></i></div><h3>Bạn đã ứng tuyển việc này</h3><p>Theo dõi trạng thái tại trang "Việc đã ứng tuyển"</p><a href="my-applications.html" class="btn btn-primary mt-2">Xem danh sách</a></div>';
-      } else {
-        card.innerHTML = `
-        <div class="mb-3">
-          <h2><i class="fa-solid fa-envelope-open-text"></i> Ứng tuyển</h2>
-          <p class="cv-meta">${job.title} — ${job.companyName}</p>
-        </div>
-        <form onsubmit="submitApplication(event)">
-          <div class="form-group">
-            <label class="form-label">Họ và tên</label>
-            <input class="form-input" id="fullName" value="${user.fullName || ""}" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Email</label>
-            <input type="email" class="form-input" id="email" value="${user.email || ""}" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Giới thiệu bản thân / CV</label>
-            <textarea class="form-textarea" id="cv" rows="6" required placeholder="Mô tả kinh nghiệm, kỹ năng, lý do bạn phù hợp với vị trí này..."></textarea>
-            <p class="form-hint">Viết về kinh nghiệm và kỹ năng liên quan đến công việc</p>
-          </div>
-          <button type="submit" class="btn btn-primary btn-large w-100"><i class="fa-solid fa-paper-plane"></i> Gửi ứng tuyển</button>
-        </form>
-      `;
-      }
+        const hasApplied = await window.DB.hasApplied(jobId, user.id);
 
-      function submitApplication(e) {
-        e.preventDefault();
-        DB.createApplication({
-          jobId: jobId,
-          candidateId: user.id,
-          fullName: document.getElementById("fullName").value.trim(),
-          email: document.getElementById("email").value.trim(),
-          cv: document.getElementById("cv").value.trim(),
-        });
-        Toast.success(
-          "🎉 Ứng tuyển thành công! Nhà tuyển dụng sẽ xem hồ sơ của bạn.",
-        );
-        setTimeout(() => {
-          location.href = "my-applications.html";
-        }, 1500);
-      }
+        if (!job) {
+          card.innerHTML =
+            '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-circle-xmark"></i></div><h3>Không tìm thấy việc làm</h3></div>';
+        } else if (hasApplied) {
+          card.innerHTML =
+            '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-circle-check"></i></div><h3>Bạn đã ứng tuyển việc này</h3><p>Theo dõi trạng thái tại trang "Việc đã ứng tuyển"</p><a href="my-applications.html" class="btn btn-primary mt-2">Xem danh sách</a></div>';
+        } else {
+          card.innerHTML = `
+          <div class="mb-3">
+            <h2><i class="fa-solid fa-envelope-open-text"></i> Ứng tuyển</h2>
+            <p class="cv-meta">${job.title} — ${job.companyName}</p>
+          </div>
+          <form onsubmit="submitApplication(event)">
+            <div class="form-group">
+              <label class="form-label">Họ và tên</label>
+              <input class="form-input" id="fullName" value="${user.fullName || ""}" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" id="email" value="${user.email || ""}" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Giới thiệu bản thân / CV</label>
+              <textarea class="form-textarea" id="cv" rows="6" required placeholder="Mô tả kinh nghiệm, kỹ năng, lý do bạn phù hợp với vị trí này..."></textarea>
+              <p class="form-hint">Viết về kinh nghiệm và kỹ năng liên quan đến công việc</p>
+            </div>
+            <button type="submit" class="btn btn-primary btn-large w-100"><i class="fa-solid fa-paper-plane"></i> Gửi ứng tuyển</button>
+          </form>
+        `;
+        }
+
+        window.submitApplication = async function(e) {
+          e.preventDefault();
+          const btn = e.target.querySelector('button[type="submit"]');
+          btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
+          btn.disabled = true;
+
+          await window.DB.createApplication({
+            jobId: jobId,
+            candidateId: user.id,
+            fullName: document.getElementById("fullName").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            cv: document.getElementById("cv").value.trim(),
+          });
+          Toast.success(
+            "🎉 Ứng tuyển thành công! Nhà tuyển dụng sẽ xem hồ sơ của bạn.",
+          );
+          setTimeout(() => {
+            location.href = "my-applications.html";
+          }, 1500);
+        }
+      });
     </script>
   </body>
 </html>

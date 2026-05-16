@@ -1,6 +1,20 @@
-/* ========== DATABASE LAYER (localStorage) ========== */
+/* ========== DATABASE LAYER (Firebase + localStorage) ========== */
+import { db } from "./firebase-config.js";
+window.USE_FIREBASE = true;
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-const DB = {
+window.DB = {
   /* === Helpers === */
   _get(key) {
     try {
@@ -19,163 +33,119 @@ const DB = {
     return new Date().toISOString();
   },
 
-  /* === USERS === */
-  getUsers() {
-    return this._get("users");
-  },
-  getUserById(id) {
-    return this.getUsers().find((u) => u.id === id);
-  },
-  getUserByUsername(username) {
-    return this.getUsers().find((u) => u.username === username);
-  },
-  createUser(data) {
-    const users = this.getUsers();
-    const user = {
-      id: this._id(),
-      ...data,
-      createdAt: this._now(),
-      status: "active",
-    };
-    users.push(user);
-    this._set("users", users);
-    return user;
-  },
-  updateUser(id, data) {
-    const users = this.getUsers().map((u) =>
-      u.id === id ? { ...u, ...data, updatedAt: this._now() } : u,
-    );
-    this._set("users", users);
-    return users.find((u) => u.id === id);
-  },
-  deleteUser(id) {
-    this._set(
-      "users",
-      this.getUsers().filter((u) => u.id !== id),
-    );
+  /* === USERS (FIRESTORE) === */
+  async getUserById(id) {
+    const d = await getDoc(doc(db, "users", id));
+    return d.exists() ? { id: d.id, ...d.data() } : null;
   },
 
-  /* === JOBS === */
-  getJobs() {
-    return this._get("jobs");
+  /* === JOBS (FIRESTORE) === */
+  async getJobs() {
+    const q = collection(db, "jobs");
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   },
-  getJobById(id) {
-    return this.getJobs().find((j) => j.id === id);
+  async getJobById(id) {
+    const d = await getDoc(doc(db, "jobs", id));
+    return d.exists() ? { id: d.id, ...d.data() } : null;
   },
-  getJobsByEmployer(employerId) {
-    return this.getJobs().filter((j) => j.createdBy === employerId);
+  async getJobsByEmployer(employerId) {
+    const q = query(collection(db, "jobs"), where("createdBy", "==", employerId));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   },
-  createJob(data) {
-    const jobs = this.getJobs();
-    const job = {
-      id: this._id(),
+  async createJob(data) {
+    const jobData = {
       ...data,
       createdAt: this._now(),
       status: "active",
       views: 0,
     };
-    jobs.push(job);
-    this._set("jobs", jobs);
-    return job;
+    const docRef = await addDoc(collection(db, "jobs"), jobData);
+    return { id: docRef.id, ...jobData };
   },
-  updateJob(id, data) {
-    const jobs = this.getJobs().map((j) =>
-      j.id === id ? { ...j, ...data, updatedAt: this._now() } : j,
-    );
-    this._set("jobs", jobs);
-    return jobs.find((j) => j.id === id);
+  async updateJob(id, data) {
+    const dataToUpdate = { ...data, updatedAt: this._now() };
+    await updateDoc(doc(db, "jobs", id), dataToUpdate);
+    return await this.getJobById(id);
   },
-  deleteJob(id) {
-    this._set(
-      "jobs",
-      this.getJobs().filter((j) => j.id !== id),
-    );
-    // Also delete related applications
-    this._set(
-      "applications",
-      this.getApplications().filter((a) => a.jobId !== id),
-    );
+  async deleteJob(id) {
+    await deleteDoc(doc(db, "jobs", id));
   },
-  incrementJobViews(id) {
-    const jobs = this.getJobs().map((j) =>
-      j.id === id ? { ...j, views: (j.views || 0) + 1 } : j,
-    );
-    this._set("jobs", jobs);
+  async incrementJobViews(id) {
+    const job = await this.getJobById(id);
+    if (job) {
+      await updateDoc(doc(db, "jobs", id), { views: (job.views || 0) + 1 });
+    }
   },
 
-  /* === APPLICATIONS === */
-  getApplications() {
-    return this._get("applications");
+  /* === APPLICATIONS (FIRESTORE) === */
+  async getApplications() {
+    const q = collection(db, "applications");
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   },
-  getApplicationById(id) {
-    return this.getApplications().find((a) => a.id === id);
+  async getApplicationById(id) {
+    const d = await getDoc(doc(db, "applications", id));
+    return d.exists() ? { id: d.id, ...d.data() } : null;
   },
-  getApplicationsByJob(jobId) {
-    return this.getApplications().filter((a) => a.jobId === jobId);
+  async getApplicationsByJob(jobId) {
+    const q = query(collection(db, "applications"), where("jobId", "==", jobId));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   },
-  getApplicationsByCandidate(candidateId) {
-    return this.getApplications().filter((a) => a.candidateId === candidateId);
+  async getApplicationsByCandidate(candidateId) {
+    const q = query(collection(db, "applications"), where("candidateId", "==", candidateId));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   },
-  hasApplied(jobId, candidateId) {
-    return this.getApplications().some(
-      (a) => a.jobId === jobId && a.candidateId === candidateId,
-    );
+  async hasApplied(jobId, candidateId) {
+    const q = query(collection(db, "applications"), where("jobId", "==", jobId), where("candidateId", "==", candidateId));
+    const snap = await getDocs(q);
+    return !snap.empty;
   },
-  createApplication(data) {
-    const apps = this.getApplications();
-    const app = {
-      id: this._id(),
+  async createApplication(data) {
+    const appData = {
       ...data,
-      status: "applied", // Đã ứng tuyển (Applied)
+      status: "applied",
       appliedAt: this._now(),
+      updatedAt: this._now()
     };
-    apps.push(app);
-    this._set("applications", apps);
-    return app;
+    const docRef = await addDoc(collection(db, "applications"), appData);
+    return { id: docRef.id, ...appData };
   },
-  updateApplication(id, data) {
-    const apps = this.getApplications().map((a) =>
-      a.id === id ? { ...a, ...data, updatedAt: this._now() } : a,
-    );
-    this._set("applications", apps);
-    return apps.find((a) => a.id === id);
+  async updateApplication(id, data) {
+    const dataToUpdate = { ...data, updatedAt: this._now() };
+    await updateDoc(doc(db, "applications", id), dataToUpdate);
+    return await this.getApplicationById(id);
   },
-  deleteApplication(id) {
-    this._set(
-      "applications",
-      this.getApplications().filter((a) => a.id !== id),
-    );
-    // Also delete interview if any
-    const interviews = this._get("interviews").filter(
-      (i) => i.applicationId !== id,
-    );
-    this._set("interviews", interviews);
+  async deleteApplication(id) {
+    await deleteDoc(doc(db, "applications", id));
   },
 
-  /* === INTERVIEWS === */
-  getInterviews() {
-    return this._get("interviews");
+  /* === INTERVIEWS (FIRESTORE) === */
+  async getInterviews() {
+    const q = collection(db, "interviews");
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   },
-  getInterviewByApplication(appId) {
-    return this.getInterviews().find((i) => i.applicationId === appId);
+  async getInterviewByApplication(appId) {
+    const q = query(collection(db, "interviews"), where("applicationId", "==", appId));
+    const snap = await getDocs(q);
+    return snap.empty ? null : { id: snap.docs[0].id, ...snap.docs[0].data() };
   },
-  scheduleInterview(appId, data) {
-    const interviews = this.getInterviews();
-    const interview = {
-      id: this._id(),
+  async scheduleInterview(appId, data) {
+    const interviewData = {
       applicationId: appId,
       ...data,
       createdAt: this._now(),
     };
-    interviews.push(interview);
-    this._set("interviews", interviews);
-
-    // Update application status
-    this.updateApplication(appId, { status: "interview_scheduled" });
-    return interview;
+    const docRef = await addDoc(collection(db, "interviews"), interviewData);
+    await this.updateApplication(appId, { status: "interview_scheduled" });
+    return { id: docRef.id, ...interviewData };
   },
 
-  /* === SAVED JOBS === */
+  /* === SAVED JOBS (LOCAL) === */
   getSavedJobs(userId) {
     return this._get("savedJobs").filter((s) => s.userId === userId);
   },
@@ -200,28 +170,23 @@ const DB = {
     }
   },
 
-  /* === COMPANIES === */
-  getCompanies() {
-    return this._get("companies");
+  /* === COMPANIES (FIRESTORE) === */
+  async getCompanyByEmployer(employerId) {
+    const d = await getDoc(doc(db, "companies", employerId));
+    return d.exists() ? { id: d.id, ...d.data() } : null;
   },
-  getCompanyByEmployer(employerId) {
-    return this.getCompanies().find((c) => c.employerId === employerId);
+  async createCompany(employerId, data) {
+    await setDoc(doc(db, "companies", employerId), {
+      employerId,
+      ...data,
+      createdAt: this._now()
+    });
   },
-  createCompany(data) {
-    const companies = this.getCompanies();
-    const company = { id: this._id(), ...data, createdAt: this._now() };
-    companies.push(company);
-    this._set("companies", companies);
-    return company;
-  },
-  updateCompany(employerId, data) {
-    let companies = this.getCompanies();
-    const idx = companies.findIndex((c) => c.employerId === employerId);
-    if (idx > -1) {
-      companies[idx] = { ...companies[idx], ...data, updatedAt: this._now() };
-    }
-    this._set("companies", companies);
-    return companies[idx];
+  async updateCompany(employerId, data) {
+    await updateDoc(doc(db, "companies", employerId), {
+      ...data,
+      updatedAt: this._now()
+    });
   },
 
   /* === MESSAGES === */
@@ -393,4 +358,6 @@ const DB = {
 };
 
 // Auto seed
-DB.seed();
+if (!window.USE_FIREBASE) {
+  DB.seed();
+}

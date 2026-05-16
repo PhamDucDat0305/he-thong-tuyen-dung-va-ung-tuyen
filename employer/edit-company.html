@@ -151,38 +151,59 @@
         </div>
       </main>
     </div>
-    <script src="../js/db.js"></script>
-    <script src="../js/auth.js"></script>
+    <script type="module" src="../js/db.js"></script>
+    <script type="module" src="../js/auth.js"></script>
     <script src="../js/notifications.js"></script>
-    <script src="../js/app.js"></script>
+    <script type="module" src="../js/app.js"></script>
     <script src="../js/navbar.js"></script>
-    <script>
-      const user = Auth.requireAuth(["employer"]);
-      if (!user) throw "r";
-      App.renderSidebar("employer", "edit_company");
-      const c = DB.getCompanyByEmployer(user.id) || {};
-      document.getElementById("name").value = c.name || "";
-      document.getElementById("logo").value = c.logo || "";
-      document.getElementById("industry").value = c.industry || "";
-      document.getElementById("size").value = c.size || "";
-      document.getElementById("location").value = c.location || "";
-      document.getElementById("website").value = c.website || "";
-      document.getElementById("description").value = c.description || "";
+    <script type="module">
+      document.addEventListener("DOMContentLoaded", async () => {
+        const user = window.Auth.requireAuth(["employer"]);
+        if (!user) return;
+        window.App.renderSidebar("employer", "edit_company");
+        
+        const c = (await window.DB.getCompanyByEmployer(user.id)) || {};
+        document.getElementById("name").value = c.name || "";
+        document.getElementById("logo").value = c.logo || "";
+        document.getElementById("industry").value = c.industry || "";
+        document.getElementById("size").value = c.size || "";
+        document.getElementById("location").value = c.location || "";
+        document.getElementById("website").value = c.website || "";
+        document.getElementById("description").value = c.description || "";
 
-      function saveCompany(e) {
-        e.preventDefault();
-        DB.updateCompany(user.id, {
-          name: document.getElementById("name").value.trim(),
-          logo: document.getElementById("logo").value.trim() || "🏢",
-          industry: document.getElementById("industry").value.trim(),
-          size: document.getElementById("size").value.trim(),
-          location: document.getElementById("location").value.trim(),
-          website: document.getElementById("website").value.trim(),
-          description: document.getElementById("description").value.trim(),
-        });
-        Toast.success("Cập nhật thành công!");
-        setTimeout(() => (location.href = "company-profile.html"), 800);
-      }
+        window.saveCompany = async function(e) {
+          e.preventDefault();
+          const btn = e.target.querySelector('button[type="submit"]');
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+
+          try {
+            const data = {
+              name: document.getElementById("name").value.trim(),
+              logo: document.getElementById("logo").value.trim() || "🏢",
+              industry: document.getElementById("industry").value.trim(),
+              size: document.getElementById("size").value.trim(),
+              location: document.getElementById("location").value.trim(),
+              website: document.getElementById("website").value.trim(),
+              description: document.getElementById("description").value.trim(),
+            };
+
+            const existing = await window.DB.getCompanyByEmployer(user.id);
+            if (existing) {
+              await window.DB.updateCompany(user.id, data);
+            } else {
+              await window.DB.createCompany(user.id, data);
+            }
+            
+            Toast.success("Cập nhật thành công!");
+            setTimeout(() => (location.href = "company-profile.html"), 800);
+          } catch (error) {
+            Toast.error("Lỗi: " + error.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu';
+          }
+        };
+      });
     </script>
   </body>
 </html>

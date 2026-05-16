@@ -49,11 +49,12 @@ const BadgeNotifier = {
   },
 
   _counts: {
-    emp_applied(userId) {
+    async emp_applied(userId) {
       try {
-        const jobIds = new Set(DB.getJobsByEmployer(userId).map((j) => j.id));
+        const jobs = await window.DB.getJobsByEmployer(userId);
+        const jobIds = new Set(jobs.map((j) => j.id));
         const lastSeen = BadgeNotifier.getLastSeen(userId, "emp_applied");
-        return DB.getApplications().filter(
+        return window.DB.getApplications().filter(
           (a) =>
             jobIds.has(a.jobId) &&
             a.status === "applied" &&
@@ -63,11 +64,12 @@ const BadgeNotifier = {
         return 0;
       }
     },
-    emp_interviews(userId) {
+    async emp_interviews(userId) {
       try {
-        const jobIds = new Set(DB.getJobsByEmployer(userId).map((j) => j.id));
+        const jobs = await window.DB.getJobsByEmployer(userId);
+        const jobIds = new Set(jobs.map((j) => j.id));
         const lastSeen = BadgeNotifier.getLastSeen(userId, "emp_interviews");
-        return DB.getApplications().filter(
+        return window.DB.getApplications().filter(
           (a) =>
             jobIds.has(a.jobId) &&
             a.status === "interview_scheduled" &&
@@ -77,10 +79,10 @@ const BadgeNotifier = {
         return 0;
       }
     },
-    cand_apps(userId) {
+    async cand_apps(userId) {
       try {
         const lastSeen = BadgeNotifier.getLastSeen(userId, "cand_apps");
-        return DB.getApplicationsByCandidate(userId).filter(
+        return window.DB.getApplicationsByCandidate(userId).filter(
           (a) =>
             ["interview_scheduled", "accepted", "rejected", "failed"].includes(
               a.status,
@@ -90,13 +92,13 @@ const BadgeNotifier = {
         return 0;
       }
     },
-    cand_interviews(userId) {
+    async cand_interviews(userId) {
       try {
         const lastSeen = BadgeNotifier.getLastSeen(userId, "cand_interviews");
         const appIds = new Set(
-          DB.getApplicationsByCandidate(userId).map((a) => a.id),
+          window.DB.getApplicationsByCandidate(userId).map((a) => a.id),
         );
-        return DB.getInterviews().filter(
+        return window.DB.getInterviews().filter(
           (i) =>
             appIds.has(i.applicationId) && new Date(i.createdAt) > lastSeen,
         ).length;
@@ -104,7 +106,7 @@ const BadgeNotifier = {
         return 0;
       }
     },
-    invites(userId) {
+    async invites(userId) {
       try {
         const total = parseInt(
           localStorage.getItem(`notif_invites_total_${userId}`) || "2",
@@ -117,7 +119,7 @@ const BadgeNotifier = {
         return 0;
       }
     },
-    profile_views(userId) {
+    async profile_views(userId) {
       try {
         const total = parseInt(
           localStorage.getItem(`notif_pv_total_${userId}`) || "3",
@@ -132,28 +134,28 @@ const BadgeNotifier = {
     },
   },
 
-  getCount(pageKey, userId) {
-    return this._counts[pageKey] ? this._counts[pageKey](userId) : 0;
+  async getCount(pageKey, userId) {
+    return this._counts[pageKey] ? await this._counts[pageKey](userId) : 0;
   },
 
-  getAllCounts(userId, role) {
+  async getAllCounts(userId, role) {
     const r = {};
     if (role === "employer") {
-      r.emp_applied = this.getCount("emp_applied", userId);
-      r.emp_interviews = this.getCount("emp_interviews", userId);
+      r.emp_applied = await this.getCount("emp_applied", userId);
+      r.emp_interviews = await this.getCount("emp_interviews", userId);
     } else if (role === "candidate") {
-      r.cand_apps = this.getCount("cand_apps", userId);
-      r.cand_interviews = this.getCount("cand_interviews", userId);
-      r.invites = this.getCount("invites", userId);
-      r.profile_views = this.getCount("profile_views", userId);
+      r.cand_apps = await this.getCount("cand_apps", userId);
+      r.cand_interviews = await this.getCount("cand_interviews", userId);
+      r.invites = await this.getCount("invites", userId);
+      r.profile_views = await this.getCount("profile_views", userId);
     }
     return r;
   },
 
   startPolling(userId, role, ms = 5000) {
     if (this._timer) clearInterval(this._timer);
-    this._timer = setInterval(() => {
-      const counts = this.getAllCounts(userId, role);
+    this._timer = setInterval(async () => {
+      const counts = await this.getAllCounts(userId, role);
       Object.entries(counts).forEach(([key, count]) =>
         this._setBadgeCount(key, count),
       );
@@ -161,7 +163,7 @@ const BadgeNotifier = {
   },
 };
 
-const App = {
+window.App = {
   /* === Navbar Renderer (Removed - Now handled by navbar.js) === */
 
   /* === Sidebar Renderer === */
@@ -308,21 +310,35 @@ const App = {
     }
   },
 
-  renderFeaturedJobs() {
+  async renderFeaturedJobs() {
     const container = document.getElementById("featuredJobs");
     if (!container) return;
 
-    if (typeof DB === "undefined") return;
-    let jobs = DB.getJobs().filter((job) => job.status === "active");
+    if (typeof window.DB === "undefined") return;
+    
+    container.innerHTML = '<div style="text-align:center; padding: 20px; width: 100%;">Đang tải việc làm...</div>';
+    
+    let allJobs = await window.DB.getJobs();
+    let jobs = allJobs.filter((job) => job.status === "active");
 
     // Nếu là candidate, ẩn các việc đã ứng tuyển
     const currentUser =
-      typeof Auth !== "undefined" ? Auth.getCurrentUser() : null;
+      typeof window.Auth !== "undefined" ? window.Auth.getCurrentUser() : null;
     if (currentUser && currentUser.role === "candidate") {
-      jobs = jobs.filter((j) => !DB.hasApplied(j.id, currentUser.id));
+      const filteredJobs = [];
+      for (const j of jobs) {
+        const applied = await window.DB.hasApplied(j.id, currentUser.id);
+        if (!applied) filteredJobs.push(j);
+      }
+      jobs = filteredJobs;
     }
 
     jobs = jobs.reverse();
+    
+    if (jobs.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding: 20px; width: 100%;">Hiện chưa có việc làm nào.</div>';
+      return;
+    }
 
     container.innerHTML = jobs
       .map(

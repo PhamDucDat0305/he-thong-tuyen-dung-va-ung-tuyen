@@ -191,43 +191,53 @@
         </div>
       </main>
     </div>
-    <script src="../js/db.js"></script>
-    <script src="../js/auth.js"></script>
+    <script type="module" src="../js/db.js"></script>
+    <script type="module" src="../js/auth.js"></script>
     <script src="../js/notifications.js"></script>
-    <script src="../js/app.js"></script>
+    <script type="module" src="../js/app.js"></script>
     <script src="../js/navbar.js"></script>
-    <script>
-      const user = Auth.requireAuth(["employer"]);
-      if (!user) throw "r";
-      App.renderSidebar("employer", "post");
+    <script type="module">
+      document.addEventListener("DOMContentLoaded", () => {
+        const user = window.window.Auth.requireAuth(["employer"]);
+        if (!user) return;
+        window.window.App.renderSidebar("employer", "post");
 
-      function postJob(e) {
-        e.preventDefault();
-        const company = DB.getCompanyByEmployer(user.id);
-        DB.createJob({
-          title: document.getElementById("title").value.trim(),
-          salary: document.getElementById("salary").value.trim(),
-          location: document.getElementById("location").value.trim(),
-          type: document.getElementById("type").value,
-          experience: document.getElementById("experience").value,
-          category: document.getElementById("category").value,
-          description: document.getElementById("description").value.trim(),
-          requirements: document.getElementById("requirements").value.trim(),
-          benefits: document.getElementById("benefits").value.trim(),
-          companyName: company ? company.name : user.fullName,
-          createdBy: user.id,
-        });
+        window.postJob = async function(e) {
+          e.preventDefault();
+          const company = await window.DB.getCompanyByEmployer(user.id);
+          
+          // Nút bấm sẽ đổi trạng thái khi đang lưu
+          const btn = e.target.querySelector('button[type="submit"]');
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang đăng tin...';
+          btn.disabled = true;
 
-        // Tự động cập nhật UI (nếu đang ở trang có hiển thị job list)
-        if (typeof App !== "undefined" && App.renderFeaturedJobs) {
-          App.renderFeaturedJobs();
-        }
+          try {
+            await window.DB.createJob({
+              title: document.getElementById("title").value.trim(),
+              salary: document.getElementById("salary").value.trim(),
+              location: document.getElementById("location").value.trim(),
+              type: document.getElementById("type").value,
+              experience: document.getElementById("experience").value,
+              category: document.getElementById("category").value,
+              description: document.getElementById("description").value.trim(),
+              requirements: document.getElementById("requirements").value.trim(),
+              benefits: document.getElementById("benefits").value.trim(),
+              companyName: company ? company.name : user.fullName,
+              createdBy: user.id,
+            });
 
-        Toast.success("🎉 Đăng tin tuyển dụng thành công!");
-        setTimeout(() => {
-          location.href = "my-jobs.html";
-        }, 1000);
-      }
+            Toast.success("🎉 Đăng tin tuyển dụng thành công!");
+            setTimeout(() => {
+              location.href = "my-jobs.html";
+            }, 1000);
+          } catch (error) {
+            Toast.error("Đã có lỗi xảy ra: " + error.message);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+          }
+        };
+      });
     </script>
   </body>
 </html>

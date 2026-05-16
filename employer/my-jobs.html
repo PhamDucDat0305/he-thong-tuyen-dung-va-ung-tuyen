@@ -102,53 +102,65 @@
         <div id="jobList"></div>
       </main>
     </div>
-    <script src="../js/db.js"></script>
-    <script src="../js/auth.js"></script>
+    <script type="module" src="../js/db.js"></script>
+    <script type="module" src="../js/auth.js"></script>
     <script src="../js/notifications.js"></script>
-    <script src="../js/app.js"></script>
+    <script type="module" src="../js/app.js"></script>
     <script src="../js/navbar.js"></script>
-    <script>
-      const user = Auth.requireAuth(["employer"]);
-      if (!user) throw "r";
-      App.renderSidebar("employer", "myjobs");
+    <script type="module">
+      document.addEventListener("DOMContentLoaded", () => {
+        const user = window.Auth.requireAuth(["employer"]);
+        if (!user) return;
+        window.App.renderSidebar("employer", "myjobs");
 
-      function render() {
-        const jobs = DB.getJobsByEmployer(user.id).reverse();
-        if (!jobs.length) {
-          document.getElementById("jobList").innerHTML =
-            '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-file-lines"></i></div><h3>Chưa đăng tin nào</h3><a href="post-job.html" class="btn btn-primary mt-2">Đăng tin ngay</a></div>';
-          return;
-        }
-        document.getElementById("jobList").innerHTML =
-          `<div class="table-wrapper"><table class="table">
-        <thead><tr><th>Tiêu đề</th><th>Lương</th><th>Địa điểm</th><th>Ứng viên</th><th>Lượt xem</th><th>Ngày đăng</th><th>Thao tác</th></tr></thead>
-        <tbody>${jobs
-          .map((j) => {
-            const appCount = DB.getApplicationsByJob(j.id).length;
-            return `<tr>
-            <td data-label="Tiêu đề"><strong>${j.title}</strong><br><span class="badge badge-neutral" style="margin-top:4px">${j.type}</span></td>
-            <td data-label="Lương">${j.salary}</td>
-            <td data-label="Địa điểm">${j.location}</td>
-            <td data-label="Ứng viên"><a href="job-applicants.html?id=${j.id}" class="badge badge-info" style="cursor:pointer">${appCount} CV</a></td>
-            <td data-label="Lượt xem"><i class="fa-solid fa-eye"></i> ${j.views || 0}</td>
-            <td data-label="Ngày đăng">${App.formatDate(j.createdAt)}</td>
-            <td data-label="Thao tác"><div class="flex" style="gap:6px">
-              <a href="edit-job.html?id=${j.id}" class="btn btn-sm btn-secondary"><i class="fa-solid fa-pen-to-square"></i></a>
-              <a href="job-applicants.html?id=${j.id}" class="btn btn-sm btn-primary"><i class="fa-solid fa-users"></i></a>
-              <button class="btn btn-sm btn-danger" onclick="deleteJob('${j.id}')"><i class="fa-solid fa-trash-can"></i></button>
-            </div></td>
-          </tr>`;
-          })
-          .join("")}</tbody>
-      </table></div>`;
-      }
-      function deleteJob(id) {
-        if (!confirm("Bạn có chắc muốn xóa tin này?")) return;
-        DB.deleteJob(id);
-        Toast.success("Đã xóa tin tuyển dụng");
-        render();
-      }
-      render();
+        window.render = async function() {
+          const listContainer = document.getElementById("jobList");
+          listContainer.innerHTML = '<div style="text-align:center; padding: 20px;">Đang tải danh sách...</div>';
+          
+          let jobs = await window.DB.getJobsByEmployer(user.id);
+          jobs = jobs.reverse();
+          
+          if (!jobs.length) {
+            listContainer.innerHTML =
+              '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-file-lines"></i></div><h3>Chưa đăng tin nào</h3><a href="post-job.html" class="btn btn-primary mt-2">Đăng tin ngay</a></div>';
+            return;
+          }
+
+          const rows = [];
+          for (const j of jobs) {
+            const apps = await window.DB.getApplicationsByJob(j.id);
+            const appCount = apps.length;
+            rows.push(`<tr>
+              <td data-label="Tiêu đề"><strong>${j.title}</strong><br><span class="badge badge-neutral" style="margin-top:4px">${j.type}</span></td>
+              <td data-label="Lương">${j.salary}</td>
+              <td data-label="Địa điểm">${j.location}</td>
+              <td data-label="Ứng viên"><a href="job-applicants.html?id=${j.id}" class="badge badge-info" style="cursor:pointer">${appCount} CV</a></td>
+              <td data-label="Lượt xem"><i class="fa-solid fa-eye"></i> ${j.views || 0}</td>
+              <td data-label="Ngày đăng">${window.App.formatDate(j.createdAt)}</td>
+              <td data-label="Thao tác"><div class="flex" style="gap:6px">
+                <a href="edit-job.html?id=${j.id}" class="btn btn-sm btn-secondary"><i class="fa-solid fa-pen-to-square"></i></a>
+                <a href="job-applicants.html?id=${j.id}" class="btn btn-sm btn-primary"><i class="fa-solid fa-users"></i></a>
+                <button class="btn btn-sm btn-danger" onclick="deleteJob('${j.id}')"><i class="fa-solid fa-trash-can"></i></button>
+              </div></td>
+            </tr>`);
+          }
+
+          listContainer.innerHTML =
+            `<div class="table-wrapper"><table class="table">
+          <thead><tr><th>Tiêu đề</th><th>Lương</th><th>Địa điểm</th><th>Ứng viên</th><th>Lượt xem</th><th>Ngày đăng</th><th>Thao tác</th></tr></thead>
+          <tbody>${rows.join("")}</tbody>
+        </table></div>`;
+        };
+
+        window.deleteJob = async function(id) {
+          if (!confirm("Bạn có chắc muốn xóa tin này?")) return;
+          await window.DB.deleteJob(id);
+          Toast.success("Đã xóa tin tuyển dụng");
+          window.render();
+        };
+
+        window.render();
+      });
     </script>
   </body>
 </html>

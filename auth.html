@@ -183,12 +183,12 @@
               <p class="auth-subtitle">Chào mừng bạn quay lại JobViệt</p>
             </div>
             <div class="form-group w-100 text-left">
-              <label class="form-label">Tên đăng nhập</label>
+              <label class="form-label">Email</label>
               <input
-                type="text"
+                type="email"
                 class="form-input"
-                id="username"
-                placeholder="Nhập tên đăng nhập"
+                id="email_login"
+                placeholder="Nhập email"
                 required
                 autofocus
               />
@@ -270,8 +270,8 @@
       <footer class="footer" id="footer"></footer>
     </div>
 
-    <script src="js/db.js"></script>
-    <script src="js/auth.js"></script>
+    <script type="module" src="js/db.js"></script>
+    <script type="module" src="js/auth.js"></script>
     <script>
       /* ===== Chuyển tab ===== */
       const container = document.getElementById("container");
@@ -340,7 +340,7 @@
       }
 
       /* ===== Đăng ký ===== */
-      function handleRegister(event) {
+      async function handleRegister(event) {
         event.preventDefault();
 
         const fullName = document.getElementById("fullName").value.trim();
@@ -349,7 +349,8 @@
         const password = document.getElementById("password_reg").value;
         const role = document.getElementById("role").value;
 
-        const result = Auth.register(username, password, fullName, email, role);
+        const result = await window.Auth.register(username, password, fullName, email, role);
+        // const result = await window.Auth.register(email, password);
         if (!result.success) {
           showToast(result.message, "error");
           if (result.message.includes("tồn tại"))
@@ -358,20 +359,20 @@
         }
 
         // Đăng nhập luôn sau khi đăng ký thành công
-        const loginResult = Auth.login(username, password);
+        const loginResult = await window.Auth.login(email, password);
         if (loginResult.success) {
           window.location.href = "index.html";
         }
       }
 
       /* ===== Đăng nhập ===== */
-      function handleLogin(event) {
+      async function handleLogin(event) {
         event.preventDefault();
 
-        const username = document.getElementById("username").value.trim();
+        const email = document.getElementById("email_login").value.trim();
         const password = document.getElementById("password").value;
 
-        const result = Auth.login(username, password);
+        const result = await window.Auth.login(email, password);
         if (!result.success) {
           showToast(result.message, "error");
           if (result.message.includes("Mật khẩu"))

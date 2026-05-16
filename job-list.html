@@ -160,10 +160,10 @@
       </section>
       <footer class="footer" id="footer"></footer>
     </div>
-    <!-- <script src="js/db.js"></script> -->
-    <script src="js/auth.js"></script>
+    <!-- <script type="module" src="js/db.js"></script> -->
+    <script type="module" src="js/auth.js"></script>
     <script src="js/notifications.js"></script>
-    <script src="js/app.js"></script>
+    <script type="module" src="js/app.js"></script>
     <script>
       let currentPage = 1;
       const perPage = 8;
@@ -175,8 +175,9 @@
       if (params.get("cat"))
         document.getElementById("filterCat").value = params.get("cat");
 
-      function getFilteredJobs() {
-        let jobs = DB.getJobs().filter((j) => j.status === "active");
+      async function getFilteredJobs() {
+        let allJobs = await window.DB.getJobs();
+        let jobs = allJobs.filter((j) => j.status === "active");
         const q = document
           .getElementById("searchInput")
           .value.trim()
@@ -200,7 +201,7 @@
         // Sort
         if (sort === "newest")
           jobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        else if (sort === "views") jobs.sort((a, b) => b.views - a.views);
+        else if (sort === "views") jobs.sort((a, b) => (b.views || 0) - (a.views || 0));
         else if (sort === "salary-desc" || sort === "salary-asc") {
           const getSalaryNum = (s) => parseInt((s.match(/\d+/) || [0])[0]);
           jobs.sort((a, b) =>
@@ -212,9 +213,11 @@
         return jobs;
       }
 
-      function renderJobs() {
-        const jobs = getFilteredJobs();
-        const { data, totalPages } = App.paginate(jobs, currentPage, perPage);
+      async function renderJobs() {
+        document.getElementById("jobList").innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Đang tải danh sách...</div>';
+        
+        const jobs = await getFilteredJobs();
+        const { data, totalPages } = window.App.paginate(jobs, currentPage, perPage);
         document.getElementById("resultCount").textContent =
           `Tìm thấy ${jobs.length} việc làm`;
 
@@ -225,7 +228,7 @@
           return;
         }
 
-        const user = Auth.getCurrentUser();
+        const user = window.Auth.getCurrentUser();
         const logos = [
           '<i class="fa-solid fa-laptop-code text-primary"></i>',
           '<i class="fa-solid fa-building text-info"></i>',
@@ -240,7 +243,7 @@
           .map((job) => {
             const saved =
               user && user.role === "candidate"
-                ? DB.isJobSaved(user.id, job.id)
+                ? window.DB.isJobSaved(user.id, job.id)
                 : false;
             const logo = logos[job.title.length % logos.length];
             return `
@@ -266,8 +269,8 @@
             <div class="job-actions">
               <a href="../candidate/job-detail.html?id=${job.id}" class="btn btn-sm btn-primary">Xem chi tiết</a>
               <div class="flex" style="gap:16px;font-size:.82rem;color:var(--text-muted)">
-                <span><i class="fa-solid fa-eye text-warning"></i> ${job.views}</span>
-                <span><i class="fa-solid fa-calendar-days text-indigo"></i> ${App.timeAgo(job.createdAt)}</span>
+                <span><i class="fa-solid fa-eye text-warning"></i> ${job.views || 0}</span>
+                <span><i class="fa-solid fa-calendar-days text-indigo"></i> ${window.App.timeAgo(job.createdAt)}</span>
               </div>
             </div>
           </div>`;
@@ -276,10 +279,10 @@
 
         // Pagination
         const pag = document.getElementById("pagination");
-        App.renderPagination(pag, totalPages, currentPage, changePage);
+        window.App.renderPagination(pag, totalPages, currentPage, window.changePage);
       }
 
-      function highlightText(text) {
+      window.highlightText = function(text) {
         const q = document.getElementById("searchInput").value.trim();
         if (!q) return text;
         const re = new RegExp(
@@ -292,36 +295,38 @@
         );
       }
 
-      function changePage(p) {
+      window.changePage = function(p) {
         currentPage = p;
         renderJobs();
         window.scrollTo({ top: 200, behavior: "smooth" });
       }
-      function applyFilters() {
+      window.applyFilters = function() {
         currentPage = 1;
         renderJobs();
       }
-      const debouncedSearch = App.debounce(() => applyFilters(), 300);
-      function clearFilters() {
+      window.debouncedSearch = window.App.debounce(() => window.applyFilters(), 300);
+      window.clearFilters = function() {
         document.getElementById("searchInput").value = "";
         document.getElementById("filterType").value = "";
         document.getElementById("filterExp").value = "";
         document.getElementById("filterCat").value = "";
         document.getElementById("sortBy").value = "newest";
-        applyFilters();
+        window.applyFilters();
       }
-      function toggleSave(jobId, btn) {
-        const user = Auth.getCurrentUser();
+      window.toggleSave = function(jobId, btn) {
+        const user = window.Auth.getCurrentUser();
         if (!user) {
           location.href = "auth.html";
           return;
         }
-        const saved = DB.toggleSaveJob(user.id, jobId);
+        const saved = window.DB.toggleSaveJob(user.id, jobId);
         btn.classList.toggle("saved", saved);
         Toast.success(saved ? "Đã lưu việc làm ❤️" : "Đã bỏ lưu");
       }
 
-      renderJobs();
+      document.addEventListener("DOMContentLoaded", () => {
+        renderJobs();
+      });
     </script>
     <script src="js/navbar.js"></script>
   </body>

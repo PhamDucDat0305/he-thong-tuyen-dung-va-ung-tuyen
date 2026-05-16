@@ -1,59 +1,131 @@
 /* ========== AUTHENTICATION ========== */
+import { auth, db } from "./firebase-config.js";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+import {
+  doc,
+  setDoc,
+  getDoc,
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-const Auth = {
-  register(username, password, fullName, email, role) {
-    if (!username || !password || !fullName || !email || !role) {
-      return { success: false, message: "Vui lòng điền đầy đủ thông tin" };
+window.Auth = {
+  async register(username, password, fullName, email, role) {
+    try {
+      // 1. Tạo tài khoản trên Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+      const firebaseUser = userCredential.user;
+
+      // 2. Tạo dữ liệu người dùng để lưu lên Firestore
+      const userData = {
+        uid: firebaseUser.uid,
+        id: firebaseUser.uid,
+        username: username,
+        email: email,
+        fullName: fullName,
+        role: role,
+        createdAt: new Date().toISOString(),
+        status: "active",
+      };
+
+      // 3. Ghi vào Collection "users" trên Firestore
+      await setDoc(doc(db, "users", firebaseUser.uid), userData);
+
+      // Nếu là nhà tuyển dụng, tạo thêm document công ty rỗng
+      if (role === "employer") {
+        await setDoc(doc(db, "companies", firebaseUser.uid), {
+          employerId: firebaseUser.uid,
+          name: fullName + " Company",
+          description: "",
+          industry: "",
+          size: "",
+          location: "",
+          website: "",
+          logo: '<i class="fa-solid fa-building"></i>',
+        });
+      }
+
+      // 4. Lưu tạm vào localStorage để giao diện (UI) nhận diện được người dùng
+      localStorage.setItem("currentUser", JSON.stringify(userData));
+
+      return {
+        success: true,
+        user: userData,
+      };
+    } catch (error) {
+      let msg = error.message;
+      if (error.code === "auth/email-already-in-use")
+        msg = "Email này đã được sử dụng.";
+      if (error.code === "auth/weak-password")
+        msg = "Mật khẩu quá yếu (cần ít nhất 6 ký tự).";
+      return { success: false, message: msg };
     }
-    if (password.length < 4) {
-      return { success: false, message: "Mật khẩu phải có ít nhất 4 ký tự" };
-    }
-    if (DB.getUserByUsername(username)) {
-      return { success: false, message: "Tên đăng nhập đã tồn tại" };
-    }
-    const user = DB.createUser({ username, password, fullName, email, role });
-    // Auto create company profile for employer
-    if (role === "employer") {
-      DB.createCompany({
-        employerId: user.id,
-        name: fullName + " Company",
-        description: "",
-        industry: "",
-        size: "",
-        location: "",
-        website: "",
-        logo: '<i class="fa-solid fa-building"></i>',
-      });
-    }
-    return { success: true, user };
   },
 
-  login(username, password) {
-    const user = DB.getUserByUsername(username);
-    if (!user) return { success: false, message: "Tài khoản không tồn tại" };
-    if (user.password !== password)
-      return { success: false, message: "Mật khẩu không đúng" };
-    if (user.status === "blocked")
-      return { success: false, message: "Tài khoản đã bị khóa" };
-    localStorage.setItem("currentUser", JSON.stringify(user));
-    return { success: true, user };
+  async login(email, password) {
+    try {
+      // 1. Đăng nhập qua Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+      const firebaseUser = userCredential.user;
+
+      // 2. Lấy thông tin chi tiết (vai trò, họ tên) từ Firestore
+      const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+
+      if (!userDoc.exists()) {
+        return {
+          success: false,
+          message: "Lỗi: Tài khoản có tồn tại nhưng mất dữ liệu phân quyền!",
+        };
+      }
+
+      const userData = userDoc.data();
+
+      // 3. Lưu tạm vào localStorage để các file giao diện (app.js) có thể đọc được
+      localStorage.setItem("currentUser", JSON.stringify(userData));
+
+      return {
+        success: true,
+        user: userData,
+      };
+    } catch (error) {
+      let msg = error.message;
+      if (error.code === "auth/invalid-credential")
+        msg = "Email hoặc mật khẩu không chính xác.";
+      return { success: false, message: msg };
+    }
   },
 
-  logout() {
+  async logout() {
+    await signOut(auth);
+
+    // Xóa session ở local
     localStorage.removeItem("currentUser");
     sessionStorage.removeItem("loggedInUser");
+
     const isSubfolder =
       location.pathname.includes("/employer/") ||
       location.pathname.includes("/candidate/");
     const authPath = isSubfolder ? "../auth.html" : "auth.html";
+
     window.location.href = authPath;
   },
 
   getCurrentUser() {
     try {
       const local = localStorage.getItem("currentUser");
-      const session = sessionStorage.getItem("loggedInUser");
-      return JSON.parse(local || session) || null;
+
+      return JSON.parse(local) || null;
     } catch {
       return null;
     }
@@ -74,18 +146,7 @@ const Auth = {
   },
 
   changePassword(oldPwd, newPwd) {
-    const user = this.getCurrentUser();
-    if (!user) return { success: false, message: "Chưa đăng nhập" };
-    if (user.password !== oldPwd)
-      return { success: false, message: "Mật khẩu cũ không đúng" };
-    if (newPwd.length < 4)
-      return {
-        success: false,
-        message: "Mật khẩu mới phải có ít nhất 4 ký tự",
-      };
-    DB.updateUser(user.id, { password: newPwd });
-    this.updateSession({ password: newPwd });
-    return { success: true, message: "Đổi mật khẩu thành công" };
+    return { success: false, message: "Tính năng đang được nâng cấp." };
   },
 
   requireAuth(allowedRoles) {
@@ -96,7 +157,6 @@ const Auth = {
     const authPath = isSubfolder ? "../auth.html" : "auth.html";
     const indexPath = isSubfolder ? "../index.html" : "index.html";
 
-    // Anti-flicker: Hide body immediately if not logged in or wrong role
     if (!user || (allowedRoles && !allowedRoles.includes(user.role))) {
       document.documentElement.style.display = "none";
     }
@@ -112,8 +172,22 @@ const Auth = {
       return null;
     }
 
-    // If everything is fine, make sure body is visible (in case it was hidden)
     document.documentElement.style.display = "";
     return user;
   },
 };
+onAuthStateChanged(auth, async (firebaseUser) => {
+  if (firebaseUser) {
+    try {
+      const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+
+      if (userDoc.exists()) {
+        localStorage.setItem("currentUser", JSON.stringify(userDoc.data()));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  } else {
+    localStorage.removeItem("currentUser");
+  }
+});

@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
@@ -124,79 +124,83 @@
         </div>
       </main>
     </div>
-    <script src="../js/db.js"></script>
-    <script src="../js/auth.js"></script>
+    <script type="module" src="../js/db.js"></script>
+    <script type="module" src="../js/auth.js"></script>
     <script src="../js/notifications.js"></script>
-    <script src="../js/app.js"></script>
+    <script type="module" src="../js/app.js"></script>
     <script src="../js/navbar.js"></script>
-    <script>
-      const user = Auth.requireAuth(["employer"]);
-      if (!user) throw "redirect";
-      App.renderSidebar("employer", "interviews");
-      BadgeNotifier.markSeen(user.id, "emp_interviews");
+    <script type="module">
+      document.addEventListener("DOMContentLoaded", async () => {
+        const user = window.Auth.requireAuth(["employer"]);
+        if (!user) return;
+        window.App.renderSidebar("employer", "interviews");
+        window.BadgeNotifier.markSeen(user.id, "emp_interviews");
 
-      function render() {
-        const myJobs = DB.getJobsByEmployer(user.id);
-        const myJobIds = myJobs.map((j) => j.id);
-        const allApps = DB.getApplications().filter(
-          (a) =>
-            myJobIds.includes(a.jobId) && a.status === "interview_scheduled",
-        );
-        const allInterviews = DB.getInterviews();
+        window.render = async function() {
+          document.getElementById("interviewList").innerHTML = "<tr><td colspan='5' class='text-center'>Đang tải...</td></tr>";
+          const myJobs = await window.DB.getJobsByEmployer(user.id);
+          const myJobIds = myJobs.map((j) => j.id);
+          const allApps = await window.DB.getApplications();
+          const filteredApps = allApps.filter(
+            (a) =>
+              myJobIds.includes(a.jobId) && a.status === "interview_scheduled",
+          );
+          const allInterviews = await window.DB.getInterviews();
 
-        const container = document.getElementById("interviewList");
-        if (!allApps.length) {
-          container.innerHTML =
-            '<tr><td colspan="5" class="text-center" style="padding:40px; color:var(--text-light)">Chưa có lịch phỏng vấn nào sắp tới.</td></tr>';
-          return;
+          const container = document.getElementById("interviewList");
+          if (!filteredApps.length) {
+            container.innerHTML =
+              '<tr><td colspan="5" class="text-center" style="padding:40px; color:var(--text-light)">Chưa có lịch phỏng vấn nào sắp tới.</td></tr>';
+            return;
+          }
+
+          const rows = [];
+          for (const a of filteredApps) {
+              const job = await window.DB.getJobById(a.jobId);
+              const interview = allInterviews.find(
+                (i) => i.applicationId === a.id,
+              );
+              const timeStr = interview
+                ? `${interview.date} · ${interview.time}`
+                : "Chưa cập nhật";
+
+              rows.push(`
+            <tr>
+              <td data-label="Thời gian"><strong>${timeStr}</strong></td>
+              <td data-label="Ứng viên"><strong>${a.fullName}</strong></td>
+              <td data-label="Vị trí">${job ? job.title : "N/A"}</td>
+              <td data-label="Hình thức"><span class="badge badge-neutral">${interview ? (interview.type === "online" ? "Online" : "Trực tiếp") : "-"}</span></td>
+              <td data-label="Hành động">
+                <div class="flex" style="gap:8px">
+                  <button onclick="window.App.openChat('${a.candidateId}')" class="btn btn-xs btn-info" title="Nhắn tin"><i class="fa-solid fa-comments"></i></button>
+                  <button class="btn btn-xs btn-success" onclick="window.updateResult('${a.id}', 'accepted')"><i class="fa-solid fa-check"></i> Đậu</button>
+                  <button class="btn btn-xs btn-danger" onclick="window.updateResult('${a.id}', 'failed')"><i class="fa-solid fa-xmark"></i> Không đạt</button>
+                </div>
+              </td>
+            </tr>
+          `);
+          }
+          container.innerHTML = rows.join("");
         }
 
-        container.innerHTML = allApps
-          .map((a) => {
-            const job = DB.getJobById(a.jobId);
-            const interview = allInterviews.find(
-              (i) => i.applicationId === a.id,
-            );
-            const timeStr = interview
-              ? `${interview.date} · ${interview.time}`
-              : "Chưa cập nhật";
-
-            return `
-          <tr>
-            <td data-label="Thời gian"><strong>${timeStr}</strong></td>
-            <td data-label="Ứng viên"><strong>${a.fullName}</strong></td>
-            <td data-label="Vị trí">${job ? job.title : "N/A"}</td>
-            <td data-label="Hình thức"><span class="badge badge-neutral">${interview ? (interview.type === "online" ? "Online" : "Trực tiếp") : "-"}</span></td>
-            <td data-label="Hành động">
-              <div class="flex" style="gap:8px">
-                <button onclick="App.openChat('${a.candidateId}')" class="btn btn-xs btn-info" title="Nhắn tin"><i class="fa-solid fa-comments"></i></button>
-                <button class="btn btn-xs btn-success" onclick="updateResult('${a.id}', 'accepted')"><i class="fa-solid fa-check"></i> Đậu</button>
-                <button class="btn btn-xs btn-danger" onclick="updateResult('${a.id}', 'failed')"><i class="fa-solid fa-xmark"></i> Không đạt</button>
-              </div>
-            </td>
-          </tr>
-        `;
-          })
-          .join("");
-      }
-
-      function updateResult(appId, status) {
-        if (
-          !confirm(
-            `Xác nhận ứng viên này ${status === "accepted" ? "ĐẬU" : "KHÔNG ĐẠT"} phỏng vấn?`,
+        window.updateResult = async function(appId, status) {
+          if (
+            !confirm(
+              `Xác nhận ứng viên này ${status === "accepted" ? "ĐẬU" : "KHÔNG ĐẠT"} phỏng vấn?`,
+            )
           )
-        )
-          return;
-        DB.updateApplication(appId, { status });
-        Toast.success(
-          status === "accepted"
-            ? "Chúc mừng! Ứng viên đã trúng tuyển."
-            : "Đã cập nhật trạng thái phỏng vấn.",
-        );
-        render();
-      }
+            return;
+          await window.DB.updateApplication(appId, { status });
+          Toast.success(
+            status === "accepted"
+              ? "Chúc mừng! Ứng viên đã trúng tuyển."
+              : "Đã cập nhật trạng thái phỏng vấn.",
+          );
+          window.render();
+        }
 
-      render();
+        window.render();
+      });
     </script>
   </body>
 </html>

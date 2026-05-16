@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
@@ -105,39 +105,40 @@
       </main>
     </div>
 
-    <script src="../js/db.js"></script>
-    <script src="../js/auth.js"></script>
+    <script type="module" src="../js/db.js"></script>
+    <script type="module" src="../js/auth.js"></script>
     <script src="../js/notifications.js"></script>
-    <script src="../js/app.js"></script>
+    <script type="module" src="../js/app.js"></script>
     <script src="../js/navbar.js"></script>
-    <script>
-      const user = Auth.requireAuth(["candidate"]);
+    <script type="module">
+      const user = window.Auth.requireAuth(["candidate"]);
       if (!user) throw "redirect";
-      App.renderSidebar("candidate", "interviews");
-      BadgeNotifier.markSeen(user.id, "cand_interviews");
+      window.App.renderSidebar("candidate", "interviews");
+      window.BadgeNotifier.markSeen(user.id, "cand_interviews");
 
-      function renderInterviews() {
-        const apps = DB.getApplicationsByCandidate(user.id).filter(
+      async function renderInterviews() {
+        const apps = (await window.DB.getApplicationsByCandidate(user.id)).filter(
           (a) => a.status === "interview_scheduled",
         );
-        const interviews = apps
-          .map((a) => {
-            const interview = DB.getInterviewByApplication(a.id);
-            if (interview) {
-              const job = DB.getJobById(a.jobId);
-              return {
-                ...interview,
-                jobTitle: job ? job.title : "N/A",
-                companyName: job ? job.companyName : "N/A",
-              };
-            }
-            return null;
-          })
-          .filter((i) => i !== null)
-          .sort(
-            (a, b) =>
-              new Date(a.date + " " + a.time) - new Date(b.date + " " + b.time),
-          );
+        
+        const interviews = [];
+        for (const a of apps) {
+          const interview = await window.DB.getInterviewByApplication(a.id);
+          if (interview) {
+            const job = await window.DB.getJobById(a.jobId);
+            interviews.push({
+              ...interview,
+              jobTitle: job ? job.title : "N/A",
+              companyName: job ? job.companyName : "N/A",
+              createdBy: job ? job.createdBy : null
+            });
+          }
+        }
+
+        interviews.sort(
+          (a, b) =>
+            new Date(a.date + " " + a.time) - new Date(b.date + " " + b.time),
+        );
 
         const container = document.getElementById("interviewList");
 
@@ -161,7 +162,7 @@
                 <h3 style="margin-bottom: 5px;">${i.jobTitle}</h3>
                 <div style="color: var(--primary); font-weight: 600; margin-bottom: 10px;">${i.companyName}</div>
                 <div style="display: grid; gap: 8px; font-size: 0.95rem;">
-                  <span><i class="fa-solid fa-calendar text-info" style="width: 20px;"></i> <strong>Ngày:</strong> ${App.formatDate(i.date)}</span>
+                  <span><i class="fa-solid fa-calendar text-info" style="width: 20px;"></i> <strong>Ngày:</strong> ${window.App.formatDate(i.date)}</span>
                   <span><i class="fa-solid fa-clock text-warning" style="width: 20px;"></i> <strong>Giờ:</strong> ${i.time}</span>
                   <span><i class="fa-solid fa-video text-success" style="width: 20px;"></i> <strong>Hình thức:</strong> ${i.type === "online" ? "Phỏng vấn Online" : "Phỏng vấn Trực tiếp"}</span>
                 </div>
@@ -169,8 +170,8 @@
               <div class="flex-column" style="align-items: flex-end; gap: 10px;">
                 <span class="badge badge-warning">Sắp diễn ra</span>
                 <div class="flex" style="gap:8px">
-                  <button onclick="App.openChat('${i.createdBy}')" class="btn btn-sm btn-info" title="Nhắn tin"><i class="fa-solid fa-comments"></i> Nhắn tin</button>
-                  <button class="btn btn-sm btn-outline" onclick="viewDetails('${i.id}')">Xem ghi chú</button>
+                  ${i.createdBy ? `<button onclick="window.App.openChat('${i.createdBy}')" class="btn btn-sm btn-info" title="Nhắn tin"><i class="fa-solid fa-comments"></i> Nhắn tin</button>` : ""}
+                  <button class="btn btn-sm btn-outline" onclick="window.viewDetails('${i.id}')">Xem ghi chú</button>
                 </div>
               </div>
             </div>
@@ -190,7 +191,7 @@
           .join("");
       }
 
-      function viewDetails(id) {
+      window.viewDetails = function(id) {
         const notes = document.getElementById("notes_" + id);
         if (notes) {
           notes.style.display =
@@ -200,7 +201,7 @@
         }
       }
 
-      renderInterviews();
+      document.addEventListener("DOMContentLoaded", renderInterviews);
     </script>
   </body>
 </html>

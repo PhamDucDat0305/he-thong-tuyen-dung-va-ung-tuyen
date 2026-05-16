@@ -92,116 +92,122 @@
     </main>
   </div>
 
-  <script src="../js/db.js"></script><script src="../js/auth.js"></script><script src="../js/notifications.js"></script><script src="../js/app.js"></script><script src="../js/navbar.js"></script>
-  <script>
-    const user = Auth.requireAuth(['employer']);
-    if(!user) throw 'r';
-    App.renderSidebar('employer','myjobs');
-    const jobId = new URLSearchParams(location.search).get('id');
-    const job = DB.getJobById(jobId);
+  <script type="module" src="../js/db.js"></script><script type="module" src="../js/auth.js"></script><script src="../js/notifications.js"></script><script type="module" src="../js/app.js"></script><script src="../js/navbar.js"></script>
+  <script type="module">
+    document.addEventListener("DOMContentLoaded", async () => {
+      const user = window.Auth.requireAuth(['employer']);
+      if(!user) return;
+      window.App.renderSidebar('employer','myjobs');
+      const jobId = new URLSearchParams(location.search).get('id');
+      const job = await window.DB.getJobById(jobId);
 
-    if (!job) { document.getElementById('header').innerHTML = '<h1>Không tìm thấy</h1>'; }
-    else {
-      document.getElementById('header').innerHTML = `<h1><i class="fa-solid fa-users"></i> Ứng viên — ${job.title}</h1><p>${job.companyName} · ${job.location}</p>`;
-      render();
-    }
+      if (!job) { document.getElementById('header').innerHTML = '<h1>Không tìm thấy</h1>'; }
+      else {
+        document.getElementById('header').innerHTML = `<h1><i class="fa-solid fa-users"></i> Ứng viên — ${job.title}</h1><p>${job.companyName} · ${job.location}</p>`;
+        window.render();
+      }
 
-    function render() {
-      const apps = DB.getApplicationsByJob(jobId).filter(a => a.status === 'applied');
-      if (!apps.length) { document.getElementById('appList').innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-users"></i></div><h3>Chưa có ứng viên nào</h3></div>'; return; }
-      
-      const statusMap = { 
-        applied: ['<i class="fa-solid fa-envelope"></i> Mới ứng tuyển', 'badge-info'],
-        interview_scheduled: ['<i class="fa-solid fa-calendar-check"></i> Đang phỏng vấn', 'badge-warning'],
-        accepted: ['<i class="fa-solid fa-circle-check"></i> Trúng tuyển', 'badge-success'],
-        rejected: ['<i class="fa-solid fa-circle-xmark"></i> Từ chối', 'badge-danger'],
-        failed: ['<i class="fa-solid fa-user-xmark"></i> Không đạt', 'badge-dark']
-      };
+      window.render = async function() {
+        document.getElementById('appList').innerHTML = '<div class="text-center" style="padding: 20px;">Đang tải hồ sơ...</div>';
+        const allApps = await window.DB.getApplicationsByJob(jobId);
+        const apps = allApps.filter(a => a.status === 'applied');
+        if (!apps.length) { document.getElementById('appList').innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-users"></i></div><h3>Chưa có ứng viên nào mới</h3></div>'; return; }
+        
+        const statusMap = { 
+          applied: ['<i class="fa-solid fa-envelope"></i> Mới ứng tuyển', 'badge-info'],
+          interview_scheduled: ['<i class="fa-solid fa-calendar-check"></i> Đang phỏng vấn', 'badge-warning'],
+          accepted: ['<i class="fa-solid fa-circle-check"></i> Trúng tuyển', 'badge-success'],
+          rejected: ['<i class="fa-solid fa-circle-xmark"></i> Từ chối', 'badge-danger'],
+          failed: ['<i class="fa-solid fa-user-xmark"></i> Không đạt', 'badge-dark']
+        };
 
-      document.getElementById('appList').innerHTML = apps.map(a => {
-        const [label, cls] = statusMap[a.status] || ['Chưa rõ', 'badge-neutral'];
-        return `
-          <div class="card applicant-card mb-2 animate-fade-up">
-            <div class="flex-between flex-wrap" style="gap:12px">
-              <div class="flex" style="gap:16px">
-                <div class="applicant-avatar">${a.fullName[0]}</div>
-                <div><strong class="applicant-name">${a.fullName}</strong><br><span class="applicant-meta"><i class="fa-solid fa-envelope"></i> ${a.email} · <i class="fa-solid fa-calendar-days"></i> ${App.formatDate(a.appliedAt)}</span></div>
+        const rows = [];
+        for (const a of apps) {
+          const [label, cls] = statusMap[a.status] || ['Chưa rõ', 'badge-neutral'];
+          rows.push(`
+            <div class="card applicant-card mb-2 animate-fade-up">
+              <div class="flex-between flex-wrap" style="gap:12px">
+                <div class="flex" style="gap:16px">
+                  <div class="applicant-avatar">${a.fullName[0]}</div>
+                  <div><strong class="applicant-name">${a.fullName}</strong><br><span class="applicant-meta"><i class="fa-solid fa-envelope"></i> ${a.email} · <i class="fa-solid fa-calendar-days"></i> ${window.App.formatDate(a.appliedAt)}</span></div>
+                </div>
+                <span class="badge ${cls}">${label}</span>
               </div>
-              <span class="badge ${cls}">${label}</span>
-            </div>
-            <div class="cv-content-box">
-              <strong class="cv-label"><i class="fa-solid fa-file-lines"></i> CV / Giới thiệu:</strong><br>
-              <div class="cv-text">${a.cv}</div>
-            </div>
-            <div class="flex" style="gap:8px" id="actions_${a.id}">
-              <button onclick="App.openChat('${a.candidateId}')" class="btn btn-sm btn-info"><i class="fa-solid fa-comments"></i> Liên hệ</button>
-              ${a.status === 'applied' ? `
-                  <button class="btn btn-sm btn-primary" onclick="showInterviewForm('${a.id}')"><i class="fa-solid fa-calendar-plus"></i> Đặt lịch phỏng vấn</button>
-                  <button class="btn btn-sm btn-outline-danger" onclick="updateStatus('${a.id}','rejected')"><i class="fa-solid fa-xmark"></i> Từ chối</button>
-              ` : `<span style="font-size:.85rem;color:var(--text-light)">Trạng thái: <strong>${label}</strong></span>`}
-            </div>
-            <div id="interviewFormContainer_${a.id}" class="interview-form-inline"></div>
-          </div>`;
-      }).join('');
-    }
-
-    function updateStatus(appId, status) {
-      if(!confirm('Xác nhận thay đổi trạng thái ứng viên?')) return;
-      DB.updateApplication(appId, { status });
-      Toast.success('Cập nhật trạng thái thành công');
-      render();
-    }
-
-    function showInterviewForm(appId) {
-      const container = document.getElementById(`interviewFormContainer_${appId}`);
-      const actions = document.getElementById(`actions_${appId}`);
-      actions.style.display = 'none';
-      container.style.display = 'block';
-      container.innerHTML = `
-        <h4 class="mb-3" style="color:var(--primary)"><i class="fa-solid fa-calendar-plus"></i> Thiết lập lịch phỏng vấn</h4>
-        <form onsubmit="handleInlineSchedule(event, '${appId}')">
-          <div class="grid grid-2" style="gap:12px; margin-bottom:12px">
-            <div class="form-group mb-0">
-              <label class="form-label form-label-sm">Ngày phỏng vấn</label>
-              <input type="date" class="form-input" id="intDate_${appId}" required>
-            </div>
-            <div class="form-group mb-0">
-              <label class="form-label form-label-sm">Giờ phỏng vấn</label>
-              <input type="time" class="form-input" id="intTime_${appId}" required>
-            </div>
-          </div>
-          <div class="form-group mb-3">
-            <label class="form-label form-label-sm">Hình thức</label>
-            <select class="form-input" id="intType_${appId}">
-              <option value="online">Online (Google Meet / Zoom)</option>
-              <option value="offline">Trực tiếp tại văn phòng</option>
-            </select>
-          </div>
-          <div class="form-group mb-3">
-            <label class="form-label form-label-sm">Ghi chú / Địa điểm</label>
-            <textarea class="form-textarea" id="intNotes_${appId}" rows="2" placeholder="Link họp hoặc địa chỉ..."></textarea>
-          </div>
-          <div class="flex-end" style="gap:10px">
-            <button type="button" class="btn btn-sm btn-ghost" onclick="render()">Hủy bỏ</button>
-            <button type="submit" class="btn btn-sm btn-primary">Xác nhận lịch hẹn</button>
-          </div>
-        </form>
-      `;
-    }
-
-    function handleInlineSchedule(e, appId) {
-      e.preventDefault();
-      const data = {
-        date: document.getElementById(`intDate_${appId}`).value,
-        time: document.getElementById(`intTime_${appId}`).value,
-        type: document.getElementById(`intType_${appId}`).value,
-        notes: document.getElementById(`intNotes_${appId}`).value
+              <div class="cv-content-box">
+                <strong class="cv-label"><i class="fa-solid fa-file-lines"></i> CV / Giới thiệu:</strong><br>
+                <div class="cv-text">${a.cv}</div>
+              </div>
+              <div class="flex" style="gap:8px" id="actions_${a.id}">
+                <button onclick="window.App.openChat('${a.candidateId}')" class="btn btn-sm btn-info"><i class="fa-solid fa-comments"></i> Liên hệ</button>
+                ${a.status === 'applied' ? `
+                    <button class="btn btn-sm btn-primary" onclick="window.showInterviewForm('${a.id}')"><i class="fa-solid fa-calendar-plus"></i> Đặt lịch phỏng vấn</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="window.updateStatus('${a.id}','rejected')"><i class="fa-solid fa-xmark"></i> Từ chối</button>
+                ` : `<span style="font-size:.85rem;color:var(--text-light)">Trạng thái: <strong>${label}</strong></span>`}
+              </div>
+              <div id="interviewFormContainer_${a.id}" class="interview-form-inline"></div>
+            </div>`);
+        }
+        document.getElementById('appList').innerHTML = rows.join('');
       };
-      
-      DB.scheduleInterview(appId, data);
-      Toast.success('Đã đặt lịch phỏng vấn thành công');
-      render();
-    }
+
+      window.updateStatus = async function(appId, status) {
+        if(!confirm('Xác nhận thay đổi trạng thái ứng viên?')) return;
+        await window.DB.updateApplication(appId, { status });
+        Toast.success('Cập nhật trạng thái thành công');
+        window.render();
+      }
+
+      window.showInterviewForm = function(appId) {
+        const container = document.getElementById(`interviewFormContainer_${appId}`);
+        const actions = document.getElementById(`actions_${appId}`);
+        actions.style.display = 'none';
+        container.style.display = 'block';
+        container.innerHTML = `
+          <h4 class="mb-3" style="color:var(--primary)"><i class="fa-solid fa-calendar-plus"></i> Thiết lập lịch phỏng vấn</h4>
+          <form onsubmit="window.handleInlineSchedule(event, '${appId}')">
+            <div class="grid grid-2" style="gap:12px; margin-bottom:12px">
+              <div class="form-group mb-0">
+                <label class="form-label form-label-sm">Ngày phỏng vấn</label>
+                <input type="date" class="form-input" id="intDate_${appId}" required>
+              </div>
+              <div class="form-group mb-0">
+                <label class="form-label form-label-sm">Giờ phỏng vấn</label>
+                <input type="time" class="form-input" id="intTime_${appId}" required>
+              </div>
+            </div>
+            <div class="form-group mb-3">
+              <label class="form-label form-label-sm">Hình thức</label>
+              <select class="form-input" id="intType_${appId}">
+                <option value="online">Online (Google Meet / Zoom)</option>
+                <option value="offline">Trực tiếp tại văn phòng</option>
+              </select>
+            </div>
+            <div class="form-group mb-3">
+              <label class="form-label form-label-sm">Ghi chú / Địa điểm</label>
+              <textarea class="form-textarea" id="intNotes_${appId}" rows="2" placeholder="Link họp hoặc địa chỉ..."></textarea>
+            </div>
+            <div class="flex-end" style="gap:10px">
+              <button type="button" class="btn btn-sm btn-ghost" onclick="window.render()">Hủy bỏ</button>
+              <button type="submit" class="btn btn-sm btn-primary">Xác nhận lịch hẹn</button>
+            </div>
+          </form>
+        `;
+      }
+
+      window.handleInlineSchedule = async function(e, appId) {
+        e.preventDefault();
+        const data = {
+          date: document.getElementById(`intDate_${appId}`).value,
+          time: document.getElementById(`intTime_${appId}`).value,
+          type: document.getElementById(`intType_${appId}`).value,
+          notes: document.getElementById(`intNotes_${appId}`).value
+        };
+        
+        await window.DB.scheduleInterview(appId, data);
+        Toast.success('Đã đặt lịch phỏng vấn thành công');
+        window.render();
+      }
+    });
   </script>
 </body>
 </html>

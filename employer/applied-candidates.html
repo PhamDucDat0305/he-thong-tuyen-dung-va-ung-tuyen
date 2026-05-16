@@ -113,15 +113,15 @@
         </div>
       </main>
     </div>
-    <script src="../js/db.js"></script>
-    <script src="../js/auth.js"></script>
+    <script type="module" src="../js/db.js"></script>
+    <script type="module" src="../js/auth.js"></script>
     <script src="../js/notifications.js"></script>
-    <script src="../js/app.js"></script>
+    <script type="module" src="../js/app.js"></script>
     <script src="../js/navbar.js"></script>
-    <script>
-      const user = Auth.requireAuth(["employer"]);
+    <script type="module">
+      const user = window.window.Auth.requireAuth(["employer"]);
       if (!user) throw "redirect";
-      App.renderSidebar("employer", "applied");
+      window.App.renderSidebar("employer", "applied");
       BadgeNotifier.markSeen(user.id, "emp_applied");
 
       function render() {
